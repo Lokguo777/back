@@ -15,6 +15,11 @@ yarn-error.log*
 dist/
 build/
 
+# Frontend specific
+frontend/dist/
+frontend/build/
+frontend/node_modules/
+
 # Logs
 logs/
 *.log
@@ -95,4 +100,9 @@ Thumbs.db
 *.sqlite3
 
 # Docker
-.dockerignore 
+.dockerignore
+
+# Frontend temporary files
+frontend/.sass-cache/
+frontend/tmp/
+frontend/temp/ 
