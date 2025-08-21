@@ -1,0 +1,567 @@
+{{#> 
+	layouts/main 
+	title="员工仪表盘" 
+	pagename="staff_dashboard"
+	category_1="仪表盘"
+}}
+
+{{#*inline "head-block"}}
+<link rel="stylesheet" media="screen, print" href="css/statistics/chartjs/chartjs.css">
+<link rel="stylesheet" media="screen, print" href="css/fa-solid.css">
+<link rel="stylesheet" media="screen, print" href="css/formplugins/bootstrap-datepicker/bootstrap-datepicker.css">
+{{/inline}}
+
+{{#*inline "content-block"}}
+<main id="js-page-content" role="main" class="page-content">
+	<div class="subheader">
+		<h1 class="subheader-title">
+			<i class="subheader-icon fal fa-tachometer-alt"></i> 员工操作台
+			<small>简化数据输入与任务管理</small>
+		</h1>
+	</div>
+	
+	<div class="alert alert-primary">
+		<div class="d-flex flex-start w-100">
+			<div class="mr-2 hidden-md-down">
+				<span class="icon-stack icon-stack-lg">
+					<i class="base base-6 icon-stack-3x opacity-100 color-primary-500"></i>
+					<i class="base base-10 icon-stack-2x opacity-100 color-primary-300 fa-flip-vertical"></i>
+					<i class="fal fa-info icon-stack-1x opacity-100 color-white"></i>
+				</span>
+			</div>
+			<div class="d-flex flex-fill">
+				<div class="flex-fill">
+					<span class="h5">欢迎回来，<span id="staff-name">员工</span>！</span>
+					<p>
+						这是您的碳排放数据录入和任务管理界面。您可以在这里快速录入数据、查看任务和提交报告。
+					</p>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="row">
+		<div class="col-sm-6 col-xl-3">
+			<div class="p-3 bg-primary-300 rounded overflow-hidden position-relative text-white mb-g">
+				<div class="">
+					<h3 class="display-4 d-block l-h-n m-0 fw-500">
+						<span id="pending-tasks" class="js-count-up" data-from="0" data-to="2" data-decimals="0">0</span>
+						<small class="m-0 l-h-n">待办任务</small>
+					</h3>
+				</div>
+				<i class="fal fa-tasks position-absolute pos-right pos-bottom opacity-15 mb-n1 mr-n1" style="font-size:6rem"></i>
+			</div>
+		</div>
+		<div class="col-sm-6 col-xl-3">
+			<div class="p-3 bg-success-200 rounded overflow-hidden position-relative text-white mb-g">
+				<div class="">
+					<h3 class="display-4 d-block l-h-n m-0 fw-500">
+						<span id="completed-tasks" class="js-count-up" data-from="0" data-to="5" data-decimals="0">0</span>
+						<small class="m-0 l-h-n">已完成任务</small>
+					</h3>
+				</div>
+				<i class="fal fa-check-circle position-absolute pos-right pos-bottom opacity-15 mb-n1 mr-n1" style="font-size:6rem"></i>
+			</div>
+		</div>
+		<div class="col-sm-6 col-xl-3">
+			<div class="p-3 bg-info-200 rounded overflow-hidden position-relative text-white mb-g">
+				<div class="">
+					<h3 class="display-4 d-block l-h-n m-0 fw-500">
+						<span id="today-data" class="js-count-up" data-from="0" data-to="3" data-decimals="0">0</span>
+						<small class="m-0 l-h-n">今日数据</small>
+					</h3>
+				</div>
+				<i class="fal fa-chart-line position-absolute pos-right pos-bottom opacity-15 mb-n1 mr-n1" style="font-size:6rem"></i>
+			</div>
+		</div>
+		<div class="col-sm-6 col-xl-3">
+			<div class="p-3 bg-warning-400 rounded overflow-hidden position-relative text-white mb-g">
+				<div class="">
+					<h3 class="display-4 d-block l-h-n m-0 fw-500">
+						<span id="device-count" class="js-count-up" data-from="0" data-to="4" data-decimals="0">0</span>
+						<small class="m-0 l-h-n">监控设备</small>
+					</h3>
+				</div>
+				<i class="fal fa-sensor position-absolute pos-right pos-bottom opacity-15 mb-n1 mr-n1" style="font-size:6rem"></i>
+			</div>
+		</div>
+	</div>
+	
+	<div class="row">
+		<div class="col-lg-6">
+			<div id="panel-1" class="panel">
+				<div class="panel-hdr">
+					<h2>快速数据录入</h2>
+					<div class="panel-toolbar">
+						<button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="折叠"></button>
+						<button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="全屏"></button>
+					</div>
+				</div>
+				<div class="panel-container show">
+					<div class="panel-content">
+						<div class="panel-tag">
+							请选择设备并录入最新数据，系统将自动计算碳排放量
+						</div>
+						<form id="data-entry-form">
+							<div class="form-group">
+								<label class="form-label" for="device-select">选择设备</label>
+								<select class="form-control" id="device-select">
+									<option value="">-- 请选择设备 --</option>
+									<option value="device1">生产线能耗传感器</option>
+									<option value="device2">办公区空调系统</option>
+									<option value="device3">照明系统</option>
+									<option value="device4">配电室</option>
+								</select>
+							</div>
+							
+							<div class="form-group">
+								<label class="form-label" for="reading-date">读数日期</label>
+								<div class="input-group">
+									<input type="text" class="form-control" id="reading-date" placeholder="选择日期" value="{{now}}">
+									<div class="input-group-append">
+										<span class="input-group-text fs-xl">
+											<i class="fal fa-calendar-alt"></i>
+										</span>
+									</div>
+								</div>
+							</div>
+							
+							<div class="form-group">
+								<label class="form-label" for="reading-value">当前读数 (kWh)</label>
+								<input type="number" class="form-control" id="reading-value" placeholder="输入读数">
+							</div>
+							
+							<div class="form-group">
+								<label class="form-label" for="operation-hours">运行时间（小时）</label>
+								<input type="number" class="form-control" id="operation-hours" placeholder="设备运行时间">
+							</div>
+							
+							<div class="form-group">
+								<label class="form-label">设备运行状态</label>
+								<div class="custom-control custom-radio">
+									<input type="radio" class="custom-control-input" id="status-normal" name="device-status" checked>
+									<label class="custom-control-label" for="status-normal">正常</label>
+								</div>
+								<div class="custom-control custom-radio">
+									<input type="radio" class="custom-control-input" id="status-warning" name="device-status">
+									<label class="custom-control-label" for="status-warning">异常</label>
+								</div>
+							</div>
+							
+							<div id="status-warning-detail" class="form-group" style="display:none;">
+								<label class="form-label" for="warning-detail">异常详情</label>
+								<textarea class="form-control" id="warning-detail" rows="3" placeholder="请描述异常情况"></textarea>
+							</div>
+							
+							<div class="form-group">
+								<button type="button" id="submit-reading" class="btn btn-primary">提交数据</button>
+								<button type="button" id="clear-form" class="btn btn-secondary">清空</button>
+							</div>
+						</form>
+						
+						<div id="success-message" class="alert alert-success mt-3" style="display:none;">
+							数据提交成功！系统已计算碳排放量并保存。
+						</div>
+						
+						<div id="carbon-result" class="mt-3" style="display:none;">
+							<div class="h5">根据数据分析结果：</div>
+							<div class="panel-tag">
+								此次活动产生碳排放量：<span id="carbon-amount" class="fw-700">0</span> kg CO₂
+								<div id="carbon-comparison" class="text-muted">相当于种植 <span id="trees-count">0</span> 棵树才能抵消</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-lg-6">
+			<div id="panel-2" class="panel">
+				<div class="panel-hdr">
+					<h2>我的任务</h2>
+					<div class="panel-toolbar">
+						<button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="折叠"></button>
+						<button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="全屏"></button>
+					</div>
+				</div>
+				<div class="panel-container show">
+					<div class="panel-content">
+						<div class="row no-gutters">
+							<div class="col-lg-4 col-xl-4 pr-lg-2">
+								<div class="card mb-g">
+									<div class="card-body p-3">
+										<h5 class="text-primary">
+											<i class="fal fa-clipboard-list mr-1"></i> 数据采集
+										</h5>
+										<div class="d-flex mt-3">
+											<div class="flex-1 min-width-0">
+												<div class="text-muted mb-2">
+													<span class="badge badge-primary">待办</span> • 截止时间：今日17:00
+												</div>
+												<div class="fs-lg fw-500">
+													采集生产线能耗数据
+												</div>
+												<div class="text-muted mt-1">
+													从生产线能耗传感器读取今日能耗数据，并填写在系统中
+												</div>
+											</div>
+										</div>
+										<div class="mt-2">
+											<button type="button" class="btn btn-sm btn-success task-complete-btn" data-task="task1">
+												<i class="fal fa-check mr-1"></i> 标记完成
+											</button>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="col-lg-4 col-xl-4 pr-lg-2 pl-lg-2">
+								<div class="card mb-g">
+									<div class="card-body p-3">
+										<h5 class="text-warning">
+											<i class="fal fa-lightbulb-on mr-1"></i> 设备检查
+										</h5>
+										<div class="d-flex mt-3">
+											<div class="flex-1 min-width-0">
+												<div class="text-muted mb-2">
+													<span class="badge badge-warning">优先</span> • 截止时间：今日12:00
+												</div>
+												<div class="fs-lg fw-500">
+													检查照明系统
+												</div>
+												<div class="text-muted mt-1">
+													检查办公区照明系统是否工作正常，记录异常状况
+												</div>
+											</div>
+										</div>
+										<div class="mt-2">
+											<button type="button" class="btn btn-sm btn-success task-complete-btn" data-task="task2">
+												<i class="fal fa-check mr-1"></i> 标记完成
+											</button>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="col-lg-4 col-xl-4 pl-lg-2">
+								<div class="card mb-g bg-faded">
+									<div class="card-body p-3">
+										<h5 class="text-success">
+											<i class="fal fa-file-chart-line mr-1"></i> 报告提交
+										</h5>
+										<div class="d-flex mt-3">
+											<div class="flex-1 min-width-0">
+												<div class="text-muted mb-2">
+													<span class="badge badge-success">已完成</span> • 完成于：09:30
+												</div>
+												<div class="fs-lg fw-500">
+													提交上周能耗报告
+												</div>
+												<div class="text-muted mt-1">
+													汇总上周各系统能耗数据，生成周报表
+												</div>
+											</div>
+										</div>
+										<div class="mt-2">
+											<button type="button" class="btn btn-sm btn-light" disabled>
+												<i class="fal fa-check-circle mr-1"></i> 已完成
+											</button>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						
+						<hr class="my-3">
+						
+						<div class="panel-tag">
+							<i class="fal fa-info-circle mr-1"></i> 点击"完成"按钮提交任务，系统会自动记录您的完成时间和工作效率
+						</div>
+						
+						<div class="d-flex align-items-center">
+							<a href="javascript:void(0);" class="btn btn-outline-primary mr-1">
+								<i class="fal fa-list-alt mr-1"></i> 查看所有任务
+							</a>
+							<a href="javascript:void(0);" class="btn btn-outline-info">
+								<i class="fal fa-file-export mr-1"></i> 导出任务清单
+							</a>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<div id="panel-3" class="panel">
+				<div class="panel-hdr">
+					<h2>快速操作</h2>
+					<div class="panel-toolbar">
+						<button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="折叠"></button>
+						<button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="全屏"></button>
+					</div>
+				</div>
+				<div class="panel-container show">
+					<div class="panel-content">
+						<div class="d-flex flex-wrap">
+							<div class="p-2 w-25 text-center">
+								<a href="javascript:void(0);" class="quick-action" id="scan-qr">
+									<div class="icon-stack fa-3x mb-2">
+										<i class="fal fa-square fa-stack-2x opacity-25 text-primary-500"></i>
+										<i class="fal fa-qrcode fa-stack-1x opacity-100 text-primary-500"></i>
+									</div>
+									<span>扫码录入</span>
+								</a>
+							</div>
+							<div class="p-2 w-25 text-center">
+								<a href="javascript:void(0);" class="quick-action" id="submit-report">
+									<div class="icon-stack fa-3x mb-2">
+										<i class="fal fa-square fa-stack-2x opacity-25 text-success-500"></i>
+										<i class="fal fa-file-invoice fa-stack-1x opacity-100 text-success-500"></i>
+									</div>
+									<span>提交报告</span>
+								</a>
+							</div>
+							<div class="p-2 w-25 text-center">
+								<a href="javascript:void(0);" class="quick-action" id="report-issue">
+									<div class="icon-stack fa-3x mb-2">
+										<i class="fal fa-square fa-stack-2x opacity-25 text-danger-500"></i>
+										<i class="fal fa-exclamation-triangle fa-stack-1x opacity-100 text-danger-500"></i>
+									</div>
+									<span>上报异常</span>
+								</a>
+							</div>
+							<div class="p-2 w-25 text-center">
+								<a href="javascript:void(0);" class="quick-action" id="contact-manager">
+									<div class="icon-stack fa-3x mb-2">
+										<i class="fal fa-square fa-stack-2x opacity-25 text-info-500"></i>
+										<i class="fal fa-comment-alt-dots fa-stack-1x opacity-100 text-info-500"></i>
+									</div>
+									<span>联系主管</span>
+								</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="row">
+		<div class="col-lg-12">
+			<div id="panel-4" class="panel">
+				<div class="panel-hdr">
+					<h2>数据记录</h2>
+					<div class="panel-toolbar">
+						<button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="折叠"></button>
+						<button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="全屏"></button>
+					</div>
+				</div>
+				<div class="panel-container show">
+					<div class="panel-content">
+						<div class="panel-tag">
+							最近5条数据记录，查看更多请点击"查看全部"
+						</div>
+						<table class="table table-bordered table-hover table-striped w-100">
+							<thead>
+								<tr>
+									<th>日期</th>
+									<th>设备</th>
+									<th>读数 (kWh)</th>
+									<th>运行时间</th>
+									<th>碳排放 (kg)</th>
+									<th>状态</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>2023-10-15</td>
+									<td>生产线能耗传感器</td>
+									<td>145.2</td>
+									<td>8小时</td>
+									<td>58.08</td>
+									<td><span class="badge badge-success">正常</span></td>
+								</tr>
+								<tr>
+									<td>2023-10-14</td>
+									<td>办公区空调系统</td>
+									<td>87.5</td>
+									<td>10小时</td>
+									<td>35.00</td>
+									<td><span class="badge badge-success">正常</span></td>
+								</tr>
+								<tr>
+									<td>2023-10-14</td>
+									<td>照明系统</td>
+									<td>42.0</td>
+									<td>12小时</td>
+									<td>16.80</td>
+									<td><span class="badge badge-success">正常</span></td>
+								</tr>
+								<tr>
+									<td>2023-10-13</td>
+									<td>配电室</td>
+									<td>210.8</td>
+									<td>24小时</td>
+									<td>84.32</td>
+									<td><span class="badge badge-success">正常</span></td>
+								</tr>
+								<tr>
+									<td>2023-10-13</td>
+									<td>生产线能耗传感器</td>
+									<td>138.7</td>
+									<td>8小时</td>
+									<td>55.48</td>
+									<td><span class="badge badge-warning">异常</span></td>
+								</tr>
+							</tbody>
+						</table>
+						<div class="mt-3">
+							<a href="javascript:void(0);" class="btn btn-sm btn-primary">查看全部</a>
+							<a href="javascript:void(0);" class="btn btn-sm btn-outline-secondary">导出数据</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</main>
+{{/inline}}
+
+{{#*inline "scripts-block"}}
+<script src="js/statistics/chartjs/chartjs.bundle.js"></script>
+<script src="js/statistics/easypiechart/easypiechart.bundle.js"></script>
+<script src="js/formplugins/bootstrap-datepicker/bootstrap-datepicker.js"></script>
+<script>
+$(document).ready(function() {
+	/*
+    // 用户信息显示
+    const userName = localStorage.getItem('userName') || '员工';
+    const userRole = localStorage.getItem('userRole') || 'staff';
+    
+    // 如果不是员工角色，重定向到登录页面
+    if (userRole !== 'staff') {
+        alert('您没有访问此页面的权限');
+        window.location.href = 'page_login.html';
+    }
+    
+    $('#staff-name').text(userName);
+	*/
+    
+    // 初始化日期选择器
+    $('#reading-date').datepicker({
+        todayBtn: "linked",
+        clearBtn: true,
+        language: "zh-CN",
+        todayHighlight: true,
+        format: 'yyyy-mm-dd',
+    }).datepicker('setDate', new Date());
+    
+    // 计数器初始化
+    $('.js-count-up').each(function() {
+        $(this).countup({
+            from: $(this).data('from'),
+            to: $(this).data('to'),
+            decimals: $(this).data('decimals'),
+            duration: 2
+        });
+    });
+    
+    // 异常状态选择逻辑
+    $('input[name="device-status"]').change(function() {
+        if ($(this).attr('id') === 'status-warning') {
+            $('#status-warning-detail').show();
+        } else {
+            $('#status-warning-detail').hide();
+        }
+    });
+    
+    // 提交数据按钮事件
+    $('#submit-reading').on('click', function() {
+        const deviceId = $('#device-select').val();
+        const readingDate = $('#reading-date').val();
+        const readingValue = $('#reading-value').val();
+        const operationHours = $('#operation-hours').val();
+        const deviceStatus = $('input[name="device-status"]:checked').attr('id');
+        const warningDetail = $('#warning-detail').val();
+        
+        if (!deviceId || !readingDate || !readingValue || !operationHours) {
+            alert('请填写完整的数据信息');
+            return;
+        }
+        
+        // 模拟碳排放计算
+        const carbonFactor = 0.4; // 每千瓦时电力产生的碳排放因子
+        const carbonAmount = (parseFloat(readingValue) * carbonFactor).toFixed(2);
+        const treesNeeded = Math.ceil(parseFloat(carbonAmount) / 20); // 每棵树可以吸收约20kg CO2
+        
+        // 显示结果
+        $('#carbon-amount').text(carbonAmount);
+        $('#trees-count').text(treesNeeded);
+        
+        $('#success-message').fadeIn();
+        $('#carbon-result').fadeIn();
+        
+        // 模拟数据提交，实际应用中这里应该发送到后端
+        console.log("数据已提交", {
+            deviceId,
+            readingDate,
+            readingValue,
+            operationHours,
+            deviceStatus,
+            warningDetail,
+            carbonAmount
+        });
+    });
+    
+    // 清空表单
+    $('#clear-form').on('click', function() {
+        $('#device-select').val('');
+        $('#reading-value').val('');
+        $('#operation-hours').val('');
+        $('#status-normal').prop('checked', true);
+        $('#warning-detail').val('');
+        $('#status-warning-detail').hide();
+        $('#success-message').hide();
+        $('#carbon-result').hide();
+    });
+    
+    // 任务完成按钮
+    $('.task-complete-btn').on('click', function() {
+        const taskId = $(this).data('task');
+        const $card = $(this).closest('.card');
+        
+        // 视觉反馈
+        $card.addClass('bg-faded');
+        $(this).replaceWith('<button type="button" class="btn btn-sm btn-light" disabled><i class="fal fa-check-circle mr-1"></i> 已完成</button>');
+        $card.find('.badge').removeClass('badge-primary badge-warning').addClass('badge-success').text('已完成');
+        
+        // 更新任务统计
+        const pendingCount = parseInt($('#pending-tasks').text()) - 1;
+        const completedCount = parseInt($('#completed-tasks').text()) + 1;
+        
+        $('#pending-tasks').text(pendingCount);
+        $('#completed-tasks').text(completedCount);
+        
+        // 模拟数据提交
+        console.log("任务已完成", { taskId });
+    });
+    
+    // 快速操作按钮
+    $('.quick-action').on('click', function() {
+        const actionId = $(this).attr('id');
+        
+        switch(actionId) {
+            case 'scan-qr':
+                alert('启动摄像头扫描二维码');
+                break;
+            case 'submit-report':
+                alert('打开报告提交表单');
+                break;
+            case 'report-issue':
+                alert('打开异常上报表单');
+                break;
+            case 'contact-manager':
+                alert('打开消息系统联系主管');
+                break;
+        }
+    });
+});
+</script>
+{{/inline}}
+
+{{/layouts/main}} 

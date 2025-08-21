@@ -1,0 +1,237 @@
+{{#> 
+    layouts/main 
+    title="即時異常監控及人力安排" 
+    pagename="manager_monitor"
+    heading="即時異常監控及人力安排"
+    category_1="主管專區"
+    pagedescription="即時查看機台異常，快速分派人力處理"
+}}
+
+{{#*inline "head-block"}}
+<link rel="stylesheet" media="screen, print" href="css/notifications/sweetalert2/sweetalert2.bundle.css">
+<link rel="stylesheet" media="screen, print" href="css/datagrid/datatables/datatables.bundle.css">
+{{/inline}}
+
+{{#*inline "content-block"}}
+<div class="row">
+    <!-- 左側：機台異常清單 -->
+    <div class="col-xl-6">
+        <div id="panel-1" class="panel">
+            <div class="panel-hdr">
+                <h2>機台異常清單</h2>
+                <div class="panel-toolbar">
+                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="收合"></button>
+                    <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="全螢幕"></button>
+                </div> 
+            </div>
+            <div class="panel-container show">
+                <div class="panel-content">
+                    <!-- 緊急異常 -->
+                    <div class="alert alert-danger mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="alert-icon">
+                                <span class="icon-stack icon-stack-md">
+                                    <i class="base-7 icon-stack-3x color-danger-900"></i>
+                                    <i class="{{iconPrefix}} fa-exclamation-triangle icon-stack-1x text-white"></i>
+                                </span>
+                            </div>
+                            <div class="flex-1 ml-2">
+                                <span class="h5">緊急異常</span>
+                                <br>
+                                機台 #3 損壞 - 需要立即維修
+                                <div class="mt-1">
+                                    <button type="button" class="btn btn-danger btn-sm btn-assign" data-alert-id="1" data-severity="emergency">
+                                        立即指派
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 警告異常 -->
+                    <div class="alert alert-warning mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="alert-icon">
+                                <span class="icon-stack icon-stack-md">
+                                    <i class="base-7 icon-stack-3x color-warning-900"></i>
+                                    <i class="{{iconPrefix}} fa-exclamation icon-stack-1x text-white"></i>
+                                </span>
+                            </div>
+                            <div class="flex-1 ml-2">
+                                <span class="h5">警告</span>
+                                <br>
+                                機台 #2 有機廢棄物輸入超出負荷
+                                <div class="mt-1">
+                                    <button type="button" class="btn btn-warning btn-sm btn-assign" data-alert-id="2" data-severity="warning">
+                                        指派處理
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 提示異常 -->
+                    <div class="alert alert-info mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="alert-icon">
+                                <span class="icon-stack icon-stack-md">
+                                    <i class="base-7 icon-stack-3x color-info-900"></i>
+                                    <i class="{{iconPrefix}} fa-info icon-stack-1x text-white"></i>
+                                </span>
+                            </div>
+                            <div class="flex-1 ml-2">
+                                <span class="h5">提示</span>
+                                <br>
+                                機台 #1 無有機廢棄物輸入
+                                <div class="mt-1">
+                                    <button type="button" class="btn btn-info btn-sm btn-assign" data-alert-id="3" data-severity="info">
+                                        指派檢查
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右側：任務指派列表 -->
+    <div class="col-xl-6">
+        <div id="panel-2" class="panel">
+            <div class="panel-hdr">
+                <h2>人員任務狀態</h2>
+                <div class="panel-toolbar">
+                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="收合"></button>
+                    <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="全螢幕"></button>
+                </div>
+            </div>
+            <div class="panel-container show">
+                <div class="panel-content">
+                    <table id="dt-staff-tasks" class="table table-bordered table-hover table-striped w-100">
+                        <thead>
+                            <tr>
+                                <th>姓名</th>
+                                <th>狀態</th>
+                                <th>目前任務</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Jerry Wang</td>
+                                <td>
+                                    <select class="form-control status-select">
+                                        <option value="idle" selected>空閒</option>
+                                        <option value="busy">執行中</option>
+                                    </select>
+                                </td>
+                                <td>無</td>
+                                <td>
+                                    <button type="button" class="btn btn-primary btn-sm btn-assign-task" data-staff-id="1">
+                                        指派任務
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Mary Chen</td>
+                                <td>
+                                    <select class="form-control status-select">
+                                        <option value="idle">空閒</option>
+                                        <option value="busy" selected>執行中</option>
+                                    </select>
+                                </td>
+                                <td>機台 #2 維護</td>
+                                <td>
+                                    <button type="button" class="btn btn-primary btn-sm btn-assign-task" data-staff-id="2" disabled>
+                                        指派任務
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{/inline}}
+
+{{#*inline "scripts-block"}}
+<script src="/js/notifications/sweetalert2/sweetalert2.bundle.js"></script>
+<script src="/js/datagrid/datatables/datatables.bundle.js"></script>
+<script>
+    $(document).ready(function() {
+        // 初始化DataTables
+        var staffTable = $('#dt-staff-tasks').dataTable({
+            responsive: true,
+            dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+                "<'row'<'col-sm-12'tr>>" +
+                "<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+            buttons: [
+                {
+                    extend: 'colvis',
+                    text: '欄位顯示',
+                    titleAttr: '欄位顯示',
+                    className: 'btn-outline-default'
+                }
+            ]
+        });
+
+        // 處理狀態變更
+        $('.status-select').on('change', function() {
+            var newStatus = $(this).val();
+            var $row = $(this).closest('tr');
+            var $assignButton = $row.find('.btn-assign-task');
+
+            if (newStatus === 'busy' || newStatus === 'break') {
+                $assignButton.prop('disabled', true);
+            } else {
+                $assignButton.prop('disabled', false);
+            }
+
+            // 這裡可以添加AJAX呼叫來更新後端資料
+        });
+
+        // 處理任務指派
+        $('.btn-assign').on('click', function() {
+            var alertId = $(this).data('alert-id');
+            var severity = $(this).data('severity');
+
+            // 顯示指派對話框
+            Swal.fire({
+                title: '指派任務',
+                html: '選擇要指派的人員：<select id="staff-select" class="form-control mt-2">' +
+                      '<option value="">請選擇...</option>' +
+                      '<option value="1">Jerry Wang</option>' +
+                      '<option value="2">Mary Chen</option>' +
+                      '</select>',
+                showCancelButton: true,
+                confirmButtonText: '確認指派',
+                cancelButtonText: '取消',
+                preConfirm: () => {
+                    return document.getElementById('staff-select').value;
+                }
+            }).then((result) => {
+                if (result.isConfirmed && result.value) {
+                    // 這裡可以添加AJAX呼叫來更新後端資料
+                    Swal.fire(
+                        '已指派!',
+                        '任務已成功指派給選定人員',
+                        'success'
+                    );
+                }
+            });
+        });
+
+        // 自動更新功能
+        function updateAlerts() {
+            // 這裡可以添加AJAX呼叫來獲取最新的異常資料
+            console.log('Updating alerts...');
+        }
+
+    });
+</script>
+{{/inline}}
+
+{{/layouts/main}} 

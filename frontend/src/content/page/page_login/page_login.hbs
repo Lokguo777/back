@@ -1,0 +1,212 @@
+{{#> 
+	layouts/auth 
+	title="Login" 
+	pagename="page_login"
+}}
+
+{{#*inline "head-block"}}
+<link rel="stylesheet" media="screen, print" href="css/fa-brands.css">
+{{/inline}}
+
+{{#*inline "content-block"}}
+<div class="page-wrapper auth">
+	<div class="page-inner bg-brand-gradient">
+		<div class="page-content-wrapper bg-transparent m-0">
+			<div class="height-10 w-100 shadow-lg px-4 bg-brand-gradient">
+				<div class="d-flex align-items-center container p-0">
+
+					<div class="page-logo width-mobile-auto m-0 align-items-center justify-content-center p-0 bg-transparent bg-img-none shadow-0 height-9 border-0">
+						<a href="javascript:void(0)" class="page-logo-link press-scale-down d-flex align-items-center">
+						<img src="img/logo.png" alt="{{app}} WebApp" aria-roledescription="logo">
+						<span class="page-logo-text mr-1">{{app-name}}</span>
+						</a>
+					</div>
+					<a href="page_register.html" class="btn-link text-white ml-auto">
+						建立帳號
+					</a>
+				</div>
+			</div>
+			<div class="flex-1" style="background: url(img/svg/pattern-1.svg) no-repeat center bottom fixed; background-size: cover;">
+				<div class="container py-4 py-lg-5 my-lg-5 px-4 px-sm-0">
+					<div class="row">
+						<div class="col col-md-6 col-lg-7 hidden-sm-down">
+							<h2 class="fs-xxl fw-500 mt-4 text-white">
+								碳排放管理系統
+								<small class="h3 fw-300 mt-3 mb-5 text-white opacity-60">
+								為您提供全方位的碳排放監控、分析與優化解決方案。適用於各級管理人員，簡化操作流程，提高工作效率！
+								</small>
+							</h2>
+							<div class="d-flex flex-row mt-4">
+								<button id="boss-quick-login" class="btn btn-success mr-2">老闆快速查看</button>
+								<div class="dropdown ml-2">
+									<button class="btn btn-info dropdown-toggle" type="button" id="demo-login" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+										示範帳號
+									</button>
+									<div class="dropdown-menu" aria-labelledby="demo-login">
+										<a class="dropdown-item" href="#" data-role="boss" data-username="B123" data-password="123">老闆帳號 (B123)</a>
+										<a class="dropdown-item" href="#" data-role="manager" data-username="M123" data-password="123">主管帳號 (M123)</a>
+										<a class="dropdown-item" href="#" data-role="staff" data-username="S123" data-password="123">員工帳號 (S123)</a>
+									</div>
+								</div>
+							</div>
+							<div class="d-sm-flex flex-column align-items-center justify-content-center d-md-block">
+								<div class="px-0 py-1 mt-5 text-white fs-nano opacity-50">
+									角色功能說明
+								</div>
+								<div class="card p-2 mt-2 bg-info-500 bg-info-gradient text-white">
+									<div class="d-flex flex-row">
+										<div class="p-2">
+											<i class="fal fa-crown fa-2x"></i>
+										</div>
+										<div class="p-2">
+											<h5 class="m-0">老闆介面</h5>
+											<small>碳排趨勢、KPI達標率匯總、可無需登入</small>
+										</div>
+									</div>
+								</div>
+								<div class="card p-2 mt-2 bg-warning-500 bg-warning-gradient text-white">
+									<div class="d-flex flex-row">
+										<div class="p-2">
+											<i class="fal fa-user-tie fa-2x"></i>
+										</div>
+										<div class="p-2">
+											<h5 class="m-0">主管介面</h5>
+											<small>即時監控、異常處理、批次指派</small>
+										</div>
+									</div>
+								</div>
+								<div class="card p-2 mt-2 bg-success-500 bg-success-gradient text-white">
+									<div class="d-flex flex-row">
+										<div class="p-2">
+											<i class="fal fa-user fa-2x"></i>
+										</div>
+										<div class="p-2">
+											<h5 class="m-0">員工介面</h5>
+											<small>操作台、簡易輸入、快速報告</small>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-sm-12 col-md-6 col-lg-5 col-xl-4 ml-auto">
+							<h1 class="text-white fw-300 mb-3 d-sm-block d-md-none">
+								系統登入
+							</h1>
+							<div class="card p-4 rounded-plus bg-faded">
+								<div class="alert alert-primary" id="login-info" style="display: none;"></div>
+								<form id="js-login" novalidate="">
+									<div class="form-group">
+										<label class="form-label" for="username">使用者名稱</label>
+										<input type="text" id="username" class="form-control form-control-lg" placeholder="輸入您的帳號" value="" required>
+										<div class="invalid-feedback">請輸入使用者名稱</div>
+										<div class="help-block">B123(老闆帳號) / M123(主管帳號) / S123(員工帳號)</div>
+									</div>
+									<div class="form-group">
+										<label class="form-label" for="password">密碼</label>
+										<input type="password" id="password" class="form-control form-control-lg" placeholder="輸入密碼" value="" required>
+										<div class="invalid-feedback">請輸入密碼</div>
+										<div class="help-block">所有密碼均為：123</div>
+									</div>
+									<div class="form-group text-left">
+										<div class="custom-control custom-checkbox">
+											<input type="checkbox" class="custom-control-input" id="rememberme">
+											<label class="custom-control-label" for="rememberme">記住我30天</label>
+										</div>
+									</div>
+									<div class="row no-gutters">
+										<div class="col-lg-12 my-2">
+											<button id="js-login-btn" type="button" class="btn btn-danger btn-block btn-lg">登入系統</button>
+										</div>
+									</div>
+								</form>
+							</div>
+						</div>
+					</div>
+					<div class="position-absolute pos-bottom pos-left pos-right p-3 text-center text-white">
+						{{{copyright-inverse}}}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{{/inline}}
+
+{{#*inline "scripts-block"}}
+<script>
+	$(document).ready(function() {
+		// 角色示範帳號點擊
+		$('.dropdown-item').click(function(e) {
+			e.preventDefault();
+			const username = $(this).data('username');
+			const password = $(this).data('password');
+			$('#username').val(username);
+			$('#password').val(password);
+			$('#login-info').html('已自動填充 <strong>' + $(this).text() + '</strong> 的登入資訊').show();
+		});
+
+		// 老闆快速登入
+		$('#boss-quick-login').click(function(e) {
+			e.preventDefault();
+			localStorage.setItem('currentRole', 'boss');
+			localStorage.setItem('userName', '老闆');
+			localStorage.setItem('userID', 'B123');
+			window.location.href = 'boss_dashboard.html';
+		});
+
+		// 登入按鈕處理
+		$("#js-login-btn").click(function(event) {
+			event.preventDefault();
+			
+			// 取得表單資料
+			var username = $('#username').val();
+			var password = $('#password').val();
+			
+			// 表單驗證
+			var form = $("#js-login");
+			form.addClass('was-validated');
+			
+			if (form[0].checkValidity() === false) {
+				return false;
+			}
+			
+			// 角色判斷與登入處理
+			let userRole = '';
+			let userName = '';
+			let redirectPage = '';
+			
+			if (username === 'B123' && password === '123') {
+				userRole = 'boss';
+				userName = '老闆';
+				redirectPage = 'boss_dashboard.html';
+			} else if (username === 'M123' && password === '123') {
+				userRole = 'manager';
+				userName = '主管';
+				redirectPage = 'manager_overview.html';
+			} else if (username === 'S123' && password === '123') {
+				userRole = 'staff';
+				userName = '員工';
+				redirectPage = 'staff_device.html';
+			} else {
+				$('#login-info').html('<strong>登入失敗!</strong> 使用者名稱或密碼錯誤').removeClass('alert-primary').addClass('alert-danger').show();
+				return false;
+			}
+			
+			// 儲存登入資訊
+			localStorage.setItem('currentRole', userRole);
+			localStorage.setItem('userName', userName);
+			localStorage.setItem('userID', username);
+			
+			// 顯示登入成功資訊
+			$('#login-info').html('<strong>登入成功!</strong> 正在跳轉到 ' + userName + ' 介面...').removeClass('alert-danger').addClass('alert-success').show();
+			
+			// 延遲跳轉
+			setTimeout(function() {
+				window.location.href = redirectPage;
+			}, 1000);
+		});
+	});
+</script>
+{{/inline}}
+
+{{/layouts/auth}}

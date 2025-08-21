@@ -1,0 +1,279 @@
+{{#> 
+    layouts/main 
+    title="部門績效管理" 
+    pagename="manager_performance"
+    heading="部門績效管理"
+    category_1="主管專區"
+    pagedescription="追蹤每月KPI，優化目標設定"
+}}
+
+{{#*inline "head-block"}}
+<link rel="stylesheet" media="screen, print" href="css/statistics/chartjs/chartjs.css">
+<link rel="stylesheet" media="screen, print" href="css/formplugins/bootstrap-daterangepicker/bootstrap-daterangepicker.css">
+<link rel="stylesheet" media="screen, print" href="css/notifications/sweetalert2/sweetalert2.bundle.css">
+{{/inline}}
+
+{{#*inline "content-block"}}
+<!-- 頂部控制區 -->
+<div class="row mb-3">
+    <div class="col-xl-12">
+        <div class="panel">
+            <div class="panel-container show">
+                <div class="panel-content">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label" for="period-select">時間週期</label>
+                                <input type="text" class="form-control" id="period-select" placeholder="選擇月份">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label" for="kpi-type">KPI類型</label>
+                                <select class="form-control" id="kpi-type">
+                                    <option value="all">所有指標</option>
+                                    <option value="efficiency">效率指標</option>
+                                    <option value="quality">品質指標</option>
+                                    <option value="cost">成本指標</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- KPI圖表區 -->
+<div class="row">
+    <div class="col-xl-12">
+        <div id="panel-1" class="panel">
+            <div class="panel-hdr">
+                <h2>
+                    KPI 趨勢圖
+                </h2>
+            </div>
+            <div class="panel-container show">
+                <div class="panel-content">
+                    <canvas id="kpiTrendChart" style="width: 100%; height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- KPI設定表格 -->
+<div class="row">
+    <div class="col-xl-12">
+        <div id="panel-2" class="panel">
+            <div class="panel-hdr">
+                <h2>KPI目標設定</h2>
+                <div class="panel-toolbar">
+                    <button class="btn btn-primary btn-sm mr-2" id="saveKpiSettings">
+                        <i class="{{iconPrefix}} fa-save mr-1"></i>保存設定
+                    </button>
+                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="收合"></button>
+                    <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="全螢幕"></button>
+                </div>
+            </div>
+            <div class="panel-container show">
+                <div class="panel-content">
+                    <table class="table table-bordered table-hover table-striped w-100" id="kpiTable">
+                        <thead>
+                            <tr>
+                                <th>部門</th>
+                                <th>KPI項目</th>
+                                <th>目標值</th>
+                                <th>當前值</th>
+                                <th>達成率</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>生產部</td>
+                                <td>生產效率</td>
+                                <td>
+                                    <input type="number" class="form-control form-control-sm kpi-target" value="95" min="0" max="100">
+                                </td>
+                                <td>92</td>
+                                <td>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: 97%" aria-valuenow="97" aria-valuemin="0" aria-valuemax="100">97%</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-info mr-1" onclick="showKpiDetail('production', 'efficiency')">
+                                        <i class="{{iconPrefix}} fa-chart-line"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-warning" onclick="editKpiNote('production', 'efficiency')">
+                                        <i class="{{iconPrefix}} fa-pencil"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{/inline}}
+
+{{#*inline "scripts-block"}}
+<script src="/js/statistics/chartjs/chartjs.bundle.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+<script src="/js/formplugins/bootstrap-daterangepicker/bootstrap-daterangepicker.js"></script>
+<script src="/js/notifications/sweetalert2/sweetalert2.bundle.js"></script>
+<script>
+    $(document).ready(function() {
+        // 初始化日期選擇器
+        $('#period-select').daterangepicker({
+            singleDatePicker: true,
+            showDropdowns: true,
+            locale: {
+                format: 'YYYY-MM'
+            }
+        });
+
+        // KPI 趨勢圖
+        var ctx = document.getElementById('kpiTrendChart').getContext('2d');
+        var kpiTrendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+                datasets: [{
+                    label: 'KPI 達成率',
+                    data: [85, 88, 92, 90, 95, 93, 96, 98, 97, 99, 100, 96],
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: '達成率 (%)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: '月份'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 保存KPI設定
+        $('#saveKpiSettings').click(function() {
+            Swal.fire({
+                title: '確認保存',
+                text: '確定要保存KPI目標設定嗎？',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: '確定',
+                cancelButtonText: '取消'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // 這裡可以添加AJAX調用來保存設定
+                    Swal.fire(
+                        '已保存!',
+                        'KPI目標設定已更新',
+                        'success'
+                    );
+                }
+            });
+        });
+
+        // 篩選條件變更時更新圖表
+        $('#department-select, #kpi-type').change(function() {
+            updateKpiData();
+        });
+
+        // 更新KPI數據
+        function updateKpiData() {
+            var department = $('#department-select').val();
+            var kpiType = $('#kpi-type').val();
+            // 這裡可以添加AJAX調用來獲取篩選後的數據
+            console.log('Updating KPI data...', department, kpiType);
+        }
+    });
+
+    // 顯示KPI詳情
+    function showKpiDetail(department, kpiType) {
+        Swal.fire({
+            title: 'KPI詳細資訊',
+            html: `
+                <div class="text-left">
+                    <p><strong>部門：</strong>${department}</p>
+                    <p><strong>指標：</strong>${kpiType}</p>
+                    <p><strong>歷史趨勢：</strong></p>
+                    <canvas id="detailChart" style="width:100%; height:200px;"></canvas>
+                </div>
+            `,
+            width: 600,
+            showCloseButton: true,
+            showConfirmButton: false
+        });
+
+        // 初始化詳情圖表
+        var detailCtx = document.getElementById('detailChart').getContext('2d');
+        var detailChart = new Chart(detailCtx, {
+            type: 'line',
+            data: {
+                labels: ['1月', '2月', '3月', '4月', '5月'],
+                datasets: [{
+                    label: '實際值',
+                    data: [88, 90, 92, 91, 92],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    }
+
+    // 編輯KPI備註
+    function editKpiNote(department, kpiType) {
+        Swal.fire({
+            title: '編輯KPI備註',
+            input: 'textarea',
+            inputLabel: '備註內容',
+            inputPlaceholder: '請輸入備註...',
+            showCancelButton: true,
+            confirmButtonText: '保存',
+            cancelButtonText: '取消'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // 這裡可以添加AJAX調用來保存備註
+                console.log('Saving note...', result.value);
+            }
+        });
+    }
+</script>
+{{/inline}}
+
+{{/layouts/main}} 

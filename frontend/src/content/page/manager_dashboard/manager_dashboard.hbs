@@ -1,0 +1,473 @@
+{{#> 
+	layouts/main 
+	title="主管仪表盘" 
+	pagename="manager_dashboard"
+	category_1="仪表盘"
+	heading="主管监控仪表盘"
+	pagedescription="实时监控、异常处理、批次指派"
+}}
+
+{{#*inline "head-block"}}
+<link rel="stylesheet" media="screen, print" href="css/statistics/chartjs/chartjs.css">
+<link rel="stylesheet" media="screen, print" href="css/fa-solid.css">
+{{/inline}}
+
+{{#*inline "content-block"}}
+<div class="subheader">
+	<h1 class="subheader-title">
+		<i class="subheader-icon fal fa-tachometer-alt-fast"></i> 主管监控中心 <span class="fw-300">实时监控</span>
+	</h1>
+</div>
+
+<div class="row">
+	<div class="col-sm-6 col-xl-3">
+		<div class="p-3 bg-primary-300 rounded overflow-hidden position-relative text-white mb-g">
+			<div class="">
+				<h3 class="display-4 d-block l-h-n m-0 fw-500">
+					<span id="total-devices" class="js-count-up" data-from="0" data-to="12" data-decimals="0" data-duration="1.5" data-refresh-interval="100">12</span>
+					<small class="m-0 l-h-n">监控设备</small>
+				</h3>
+				<p class="m-0 l-h-n">全部在线设备</p>
+			</div>
+			<i class="fal fa-sensor position-absolute pos-right pos-bottom opacity-15 mb-n1 mr-n1" style="font-size:6rem"></i>
+		</div>
+	</div>
+	<div class="col-sm-6 col-xl-3">
+		<div class="p-3 bg-warning-400 rounded overflow-hidden position-relative text-white mb-g">
+			<div class="">
+				<h3 class="display-4 d-block l-h-n m-0 fw-500">
+					<span id="alert-count" class="js-count-up" data-from="0" data-to="3" data-decimals="0" data-duration="1.5" data-refresh-interval="100">3</span>
+					<small class="m-0 l-h-n">项</small>
+				</h3>
+				<p class="m-0 l-h-n">当前告警</p>
+			</div>
+			<i class="fal fa-exclamation-triangle position-absolute pos-right pos-bottom opacity-15 mb-n1 mr-n1" style="font-size:6rem"></i>
+		</div>
+	</div>
+	<div class="col-sm-6 col-xl-3">
+		<div class="p-3 bg-success-200 rounded overflow-hidden position-relative text-white mb-g">
+			<div class="">
+				<h3 class="display-4 d-block l-h-n m-0 fw-500">
+					<span id="task-count" class="js-count-up" data-from="0" data-to="8" data-decimals="0" data-duration="1.5" data-refresh-interval="100">8</span>
+					<small class="m-0 l-h-n">项</small>
+				</h3>
+				<p class="m-0 l-h-n">今日任务</p>
+			</div>
+			<i class="fal fa-tasks position-absolute pos-right pos-bottom opacity-15 mb-n1 mr-n1" style="font-size:6rem"></i>
+		</div>
+	</div>
+	<div class="col-sm-6 col-xl-3">
+		<div class="p-3 bg-info-200 rounded overflow-hidden position-relative text-white mb-g">
+			<div class="">
+				<h3 class="display-4 d-block l-h-n m-0 fw-500">
+					<span id="staff-count" class="js-count-up" data-from="0" data-to="5" data-decimals="0" data-duration="1.5" data-refresh-interval="100">5</span>
+					<small class="m-0 l-h-n">人</small>
+				</h3>
+				<p class="m-0 l-h-n">在岗员工</p>
+			</div>
+			<i class="fal fa-users position-absolute pos-right pos-bottom opacity-15 mb-n1 mr-n1" style="font-size:6rem"></i>
+		</div>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-lg-12">
+		<div id="panel-1" class="panel">
+			<div class="panel-hdr">
+				<h2>实时设备监控</h2>
+				<div class="panel-toolbar">
+					<button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="收起/展开"></button>
+					<button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="全屏"></button>
+				</div>
+			</div>
+			<div class="panel-container show">
+				<div class="panel-content">
+					<div class="alert alert-primary">
+						<div class="d-flex flex-start w-100">
+							<div class="mr-2">
+								<span class="icon-stack icon-stack-lg">
+									<i class="base-7 icon-stack-3x color-primary-500"></i>
+									<i class="base-7 icon-stack-2x color-primary-700"></i>
+									<i class="fa fa-info icon-stack-1x text-white"></i>
+								</span>
+							</div>
+							<div class="d-flex flex-fill">
+								<div class="flex-fill">
+									<span class="h5">设备监控状态</span>
+									<p>主管可以在此查看所有设备的实时状态，并对异常情况进行处理。点击设备卡片可查看详情或分配任务。</p>
+								</div>
+							</div>
+						</div>
+					</div>
+					
+					<div class="row mt-3">
+						<div class="col-md-4 col-lg-3">
+							<div class="card border mb-g">
+								<div class="card-body">
+									<div class="d-flex align-items-center">
+										<div class="d-inline-block position-relative mr-3">
+											<span class="status status-success position-absolute pos-top pos-left mt-1 ml-1"></span>
+											<span class="d-block">
+												<img src="img/demo/avatars/device-1.png" class="img-thumbnail border-0" alt="设备图像" style="width:50px; height:50px;">
+											</span>
+										</div>
+										<div>
+											<a href="javascript:void(0)" class="fs-lg text-truncate text-truncate-lg">
+												生产线能耗传感器
+											</a>
+											<div class="fs-sm d-flex align-items-center mt-1">
+												<div class="text-success mr-1">
+													<i class="fal fa-check-circle"></i> 正常
+												</div>
+												<span class="text-secondary"> • 更新于: 3分钟前</span>
+											</div>
+										</div>
+									</div>
+									<div class="mt-2">
+										<div class="progress progress-sm mb-1">
+											<div class="progress-bar bg-success-500" role="progressbar" style="width: 47%" aria-valuenow="47" aria-valuemin="0" aria-valuemax="100"></div>
+										</div>
+										<div class="d-flex align-items-center">
+											<div class="fs-sm mr-auto">当前负载: 47%</div>
+											<div class="fs-sm text-muted">正常范围</div>
+										</div>
+									</div>
+								</div>
+								<div class="card-footer">
+									<div class="btn-group btn-group-sm" role="group">
+										<button type="button" class="btn btn-default">详情</button>
+										<button type="button" class="btn btn-default">任务</button>
+										<button type="button" class="btn btn-default">设置</button>
+									</div>
+								</div>
+							</div>
+						</div>
+						
+						<div class="col-md-4 col-lg-3">
+							<div class="card border border-danger mb-g">
+								<div class="card-body">
+									<div class="d-flex align-items-center">
+										<div class="d-inline-block position-relative mr-3">
+											<span class="status status-danger position-absolute pos-top pos-left mt-1 ml-1"></span>
+											<span class="d-block">
+												<img src="img/demo/avatars/device-2.png" class="img-thumbnail border-0" alt="设备图像" style="width:50px; height:50px;">
+											</span>
+										</div>
+										<div>
+											<a href="javascript:void(0)" class="fs-lg text-truncate text-truncate-lg">
+												物流运输部监控器
+											</a>
+											<div class="fs-sm d-flex align-items-center mt-1">
+												<div class="text-danger mr-1">
+													<i class="fal fa-exclamation-circle"></i> 异常
+												</div>
+												<span class="text-secondary"> • 更新于: 1分钟前</span>
+											</div>
+										</div>
+									</div>
+									<div class="mt-2">
+										<div class="progress progress-sm mb-1">
+											<div class="progress-bar bg-danger-500" role="progressbar" style="width: 92%" aria-valuenow="92" aria-valuemin="0" aria-valuemax="100"></div>
+										</div>
+										<div class="d-flex align-items-center">
+											<div class="fs-sm mr-auto">当前负载: 92%</div>
+											<div class="fs-sm text-danger">超出正常范围</div>
+										</div>
+									</div>
+								</div>
+								<div class="card-footer">
+									<div class="btn-group btn-group-sm" role="group">
+										<button type="button" class="btn btn-default">详情</button>
+										<button type="button" class="btn btn-danger">处理</button>
+										<button type="button" class="btn btn-default">设置</button>
+									</div>
+								</div>
+							</div>
+						</div>
+						
+						<div class="col-md-4 col-lg-3">
+							<div class="card border mb-g">
+								<div class="card-body">
+									<div class="d-flex align-items-center">
+										<div class="d-inline-block position-relative mr-3">
+											<span class="status status-success position-absolute pos-top pos-left mt-1 ml-1"></span>
+											<span class="d-block">
+												<img src="img/demo/avatars/device-3.png" class="img-thumbnail border-0" alt="设备图像" style="width:50px; height:50px;">
+											</span>
+										</div>
+										<div>
+											<a href="javascript:void(0)" class="fs-lg text-truncate text-truncate-lg">
+												办公区空调系统
+											</a>
+											<div class="fs-sm d-flex align-items-center mt-1">
+												<div class="text-success mr-1">
+													<i class="fal fa-check-circle"></i> 正常
+												</div>
+												<span class="text-secondary"> • 更新于: 5分钟前</span>
+											</div>
+										</div>
+									</div>
+									<div class="mt-2">
+										<div class="progress progress-sm mb-1">
+											<div class="progress-bar bg-success-500" role="progressbar" style="width: 62%" aria-valuenow="62" aria-valuemin="0" aria-valuemax="100"></div>
+										</div>
+										<div class="d-flex align-items-center">
+											<div class="fs-sm mr-auto">当前负载: 62%</div>
+											<div class="fs-sm text-muted">正常范围</div>
+										</div>
+									</div>
+								</div>
+								<div class="card-footer">
+									<div class="btn-group btn-group-sm" role="group">
+										<button type="button" class="btn btn-default">详情</button>
+										<button type="button" class="btn btn-default">任务</button>
+										<button type="button" class="btn btn-default">设置</button>
+									</div>
+								</div>
+							</div>
+						</div>
+						
+						<div class="col-md-4 col-lg-3">
+							<div class="card border border-warning mb-g">
+								<div class="card-body">
+									<div class="d-flex align-items-center">
+										<div class="d-inline-block position-relative mr-3">
+											<span class="status status-warning position-absolute pos-top pos-left mt-1 ml-1"></span>
+											<span class="d-block">
+												<img src="img/demo/avatars/device-4.png" class="img-thumbnail border-0" alt="设备图像" style="width:50px; height:50px;">
+											</span>
+										</div>
+										<div>
+											<a href="javascript:void(0)" class="fs-lg text-truncate text-truncate-lg">
+												生产线3号锅炉
+											</a>
+											<div class="fs-sm d-flex align-items-center mt-1">
+												<div class="text-warning mr-1">
+													<i class="fal fa-exclamation-triangle"></i> 注意
+												</div>
+												<span class="text-secondary"> • 更新于: 2分钟前</span>
+											</div>
+										</div>
+									</div>
+									<div class="mt-2">
+										<div class="progress progress-sm mb-1">
+											<div class="progress-bar bg-warning-500" role="progressbar" style="width: 78%" aria-valuenow="78" aria-valuemin="0" aria-valuemax="100"></div>
+										</div>
+										<div class="d-flex align-items-center">
+											<div class="fs-sm mr-auto">当前负载: 78%</div>
+											<div class="fs-sm text-warning">接近上限</div>
+										</div>
+									</div>
+								</div>
+								<div class="card-footer">
+									<div class="btn-group btn-group-sm" role="group">
+										<button type="button" class="btn btn-default">详情</button>
+										<button type="button" class="btn btn-warning">检查</button>
+										<button type="button" class="btn btn-default">设置</button>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					
+					<div class="row">
+						<div class="col">
+							<button type="button" class="btn btn-primary waves-effect waves-themed">
+								<span class="fal fa-plus-circle mr-1"></span>
+								添加更多设备
+							</button>
+							<button type="button" class="btn btn-outline-primary waves-effect waves-themed">
+								<span class="fal fa-print mr-1"></span>
+								打印设备报告
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-xl-12">
+		<div id="panel-2" class="panel">
+			<div class="panel-hdr">
+				<h2>任务分配与跟踪</h2>
+				<div class="panel-toolbar">
+					<button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="收起/展开"></button>
+					<button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="全屏"></button>
+				</div>
+			</div>
+			<div class="panel-container show">
+				<div class="panel-content">
+					<table id="dt-basic-example" class="table table-bordered table-hover table-striped w-100">
+						<thead class="bg-primary-600">
+							<tr>
+								<th>任务编号</th>
+								<th>任务名称</th>
+								<th>责任人</th>
+								<th>截止时间</th>
+								<th>优先级</th>
+								<th>状态</th>
+								<th>操作</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>T20231015-01</td>
+								<td>采集生产线能耗数据</td>
+								<td>张三</td>
+								<td>今日17:00</td>
+								<td><span class="badge badge-primary">常规</span></td>
+								<td><span class="badge badge-success">进行中</span></td>
+								<td>
+									<div class="btn-group btn-group-sm">
+										<button type="button" class="btn btn-outline-secondary">
+											<i class="fal fa-eye"></i>
+										</button>
+										<button type="button" class="btn btn-outline-secondary">
+											<i class="fal fa-edit"></i>
+										</button>
+										<button type="button" class="btn btn-outline-secondary">
+											<i class="fal fa-check"></i>
+										</button>
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<td>T20231015-02</td>
+								<td>物流运输部异常处理</td>
+								<td>李四</td>
+								<td>今日12:00</td>
+								<td><span class="badge badge-danger">紧急</span></td>
+								<td><span class="badge badge-warning">待处理</span></td>
+								<td>
+									<div class="btn-group btn-group-sm">
+										<button type="button" class="btn btn-outline-secondary">
+											<i class="fal fa-eye"></i>
+										</button>
+										<button type="button" class="btn btn-outline-secondary">
+											<i class="fal fa-edit"></i>
+										</button>
+										<button type="button" class="btn btn-outline-danger">
+											<i class="fal fa-exclamation-circle"></i>
+										</button>
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<td>T20231015-03</td>
+								<td>生产线3号锅炉检查</td>
+								<td>王五</td>
+								<td>今日14:00</td>
+								<td><span class="badge badge-warning">重要</span></td>
+								<td><span class="badge badge-primary">待分配</span></td>
+								<td>
+									<div class="btn-group btn-group-sm">
+										<button type="button" class="btn btn-outline-secondary">
+											<i class="fal fa-eye"></i>
+										</button>
+										<button type="button" class="btn btn-outline-secondary">
+											<i class="fal fa-edit"></i>
+										</button>
+										<button type="button" class="btn btn-outline-primary">
+											<i class="fal fa-user-plus"></i>
+										</button>
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<td>T20231014-05</td>
+								<td>办公区照明系统检查</td>
+								<td>赵六</td>
+								<td>昨日12:00</td>
+								<td><span class="badge badge-primary">常规</span></td>
+								<td><span class="badge badge-success">已完成</span></td>
+								<td>
+									<div class="btn-group btn-group-sm">
+										<button type="button" class="btn btn-outline-secondary">
+											<i class="fal fa-eye"></i>
+										</button>
+										<button type="button" class="btn btn-outline-secondary" disabled>
+											<i class="fal fa-edit"></i>
+										</button>
+										<button type="button" class="btn btn-outline-success">
+											<i class="fal fa-check-circle"></i>
+										</button>
+									</div>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{{/inline}}
+
+{{#*inline "scripts-block"}}
+<script src="js/statistics/chartjs/chartjs.bundle.js"></script>
+
+<script>
+	$(document).ready(function() {
+		// 检查用户角色权限
+		const userRole = localStorage.getItem('userRole');
+		if (userRole !== 'manager') {
+			alert('您没有权限访问此页面');
+			window.location.href = 'page_login.html';
+		}
+		
+		// 初始化数据表格
+		$('#dt-basic-example').dataTable({
+			responsive: true,
+			lengthChange: false,
+			dom: "<'row mb-3'<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f><'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'B>>" +
+				"<'row'<'col-sm-12'tr>>" +
+				"<'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+			buttons: [
+				{
+					extend: 'colvis',
+					text: '列显示',
+					titleAttr: '切换列显示',
+					className: 'btn-outline-default'
+				},
+				{
+					extend: 'csvHtml5',
+					text: '导出CSV',
+					titleAttr: '导出CSV格式',
+					className: 'btn-outline-default'
+				},
+				{
+					extend: 'print',
+					text: '<i class="fal fa-print"></i>',
+					titleAttr: '打印',
+					className: 'btn-outline-default'
+				}
+			],
+			language: {
+				"sProcessing": "处理中...",
+				"sLengthMenu": "显示 _MENU_ 项结果",
+				"sZeroRecords": "没有匹配结果",
+				"sInfo": "显示第 _START_ 至 _END_ 项结果，共 _TOTAL_ 项",
+				"sInfoEmpty": "显示第 0 至 0 项结果，共 0 项",
+				"sInfoFiltered": "(由 _MAX_ 项结果过滤)",
+				"sInfoPostFix": "",
+				"sSearch": "搜索:",
+				"sUrl": "",
+				"sEmptyTable": "表中数据为空",
+				"sLoadingRecords": "载入中...",
+				"sInfoThousands": ",",
+				"oPaginate": {
+					"sFirst": "首页",
+					"sPrevious": "上页",
+					"sNext": "下页",
+					"sLast": "末页"
+				}
+			}
+		});
+	});
+</script>
+{{/inline}}
+
+{{/layouts/main}} 

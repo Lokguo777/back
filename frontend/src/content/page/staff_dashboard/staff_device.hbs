@@ -1,0 +1,295 @@
+{{#> 
+    layouts/main 
+    title="設備管理" 
+    pagename="staff_device"
+    heading="設備管理"
+    category_1="員工專區"
+    pagedescription="即時查看設備狀態並記錄維護日誌"
+}}
+
+{{#*inline "head-block"}}
+<link rel="stylesheet" media="screen, print" href="css/notifications/sweetalert2/sweetalert2.bundle.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{{/inline}}
+
+{{#*inline "content-block"}}
+<!-- 切換按鈕 -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <button id="btn-device-view" class="btn btn-outline-primary btn-sm active">設備狀態</button>
+    <button id="btn-report-view" class="btn btn-outline-secondary btn-sm">設備報表</button>
+  </div>
+  <h4 class="m-0">設備資訊</h4>
+</div>
+
+<!-- 設備卡片視圖 -->
+<div id="device-view">
+  <div class="row" id="device-list">
+    <!-- 設備卡片將由JS動態生成 -->
+  </div>
+</div>
+
+<!-- 設備報表視圖 -->
+<div id="report-view" style="display:none;">
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="panel">
+        <div class="panel-hdr">
+          <h2>設備報表</h2>
+          <div class="panel-toolbar">
+            <select id="report-selector" class="form-control form-control-sm">
+              <option value="runtime">運行時數統計</option>
+              <option value="status">設備狀態分布</option>
+              <option value="maintenance">維護紀錄次數統計</option>
+              <option value="prediction">平均運行時間與預測維護</option>
+            </select>
+          </div>
+        </div>
+        <div class="panel-container show">
+          <div class="panel-content">
+            <div id="report-container" style="height: 400px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{{/inline}}
+
+{{#*inline "scripts-block"}}
+<script src="/js/statistics/easypiechart/easypiechart.bundle.js"></script> 
+<script src="js/notifications/sweetalert2/sweetalert2.bundle.js"></script>
+
+<script>
+  function fetchDevices() {
+    return Promise.resolve([
+      { id: 1, name: "機台A", status: "normal", last_maintenance: "2024-06-01 10:00", runtime: "1200h" },
+      { id: 2, name: "機台B", status: "abnormal", last_maintenance: "2024-05-28 14:30", runtime: "800h" },
+      { id: 3, name: "機台C", status: "normal", last_maintenance: "2024-06-05 09:15", runtime: "1500h" }
+    ]);
+  }
+
+  function calcRuntimePercent(runtimeStr) {
+    const hours = parseInt(runtimeStr, 10) || 0;
+    const FULL_LOAD = 2000;
+    return Math.min(Math.round(hours / FULL_LOAD * 100), 100);
+  }
+
+  function renderDevices(devices) {
+    const $list = $('#device-list');
+    $list.empty();
+
+    devices.forEach(device => {
+      const statusColor = device.status === 'normal' ? 'bg-success-300' : 'bg-danger-300';
+      const statusText  = device.status === 'normal' ? '正常' : '異常';
+
+      const card = `
+        <div class="col-md-6 col-xl-4 mb-4">
+          <div class="card shadow border-0">
+            <div class="card-header d-flex justify-content-between align-items-center ${statusColor}">
+              <span class="fw-700 text-white">${device.name}</span>
+              <span class="badge ${device.status === 'normal' ? 'badge-success' : 'badge-danger'}">${statusText}</span>
+            </div>
+            <div class="card-body text-center">
+              <div class="js-easy-pie-chart d-inline-flex align-items-center justify-content-center mb-3"
+                   data-percent="${calcRuntimePercent(device.runtime)}"
+                   data-linewidth="12" data-piesize="120" data-linecap="butt">
+                <span class="h4 m-0 fw-700"></span>
+              </div>
+              <p class="mb-2"><strong>運行時間：</strong>${device.runtime}</p>
+              <p class="mb-2"><strong>最後維護：</strong>${device.last_maintenance}</p>
+              <button class="btn btn-primary btn-sm btn-maintain"
+                      data-id="${device.id}" data-name="${device.name}">
+                記錄維護
+              </button>
+            </div>
+          </div>
+        </div>`;
+      $list.append(card);
+    });
+
+    $('.js-easy-pie-chart').each(function () {
+      if ($(this).data('easyPieChart')) {
+        $(this).data('easyPieChart').destroy();
+      }
+    });
+
+    $('.js-easy-pie-chart').easyPieChart({
+      barColor: pct => (pct >= 70 ? '#1dc9b7' : '#fd3995'),
+      trackColor: '#f0f0f0',
+      scaleColor: false,
+      lineCap: 'butt',
+      animate: 800,
+      onStep(from, to, percent) {
+        $(this.el).find('span').text(Math.round(percent) + '%');
+      }
+    });
+  }
+
+  function showMaintenanceForm(deviceId, deviceName) {
+    Swal.fire({
+      title: `記錄維護 - ${deviceName}`,
+      html: `<textarea id="maintain-content" class="form-control" rows="4" placeholder="請輸入維護內容"></textarea>`,
+      showCancelButton: true,
+      confirmButtonText: '送出',
+      cancelButtonText: '取消',
+      preConfirm: () => {
+        const content = document.getElementById('maintain-content').value.trim();
+        if (!content) {
+          Swal.showValidationMessage('請填寫維護內容');
+        }
+        return content;
+      }
+    }).then(result => {
+      if (result.isConfirmed) {
+        const log = {
+          staff_id: 'EMP001',
+          device_id: deviceId,
+          time: new Date().toISOString(),
+          content: result.value
+        };
+        console.log('維護日誌送出:', log);
+        Swal.fire('已送出', '維護記錄已儲存', 'success');
+      }
+    });
+  }
+
+  function renderReport(type) {
+    const $container = $('#report-container');
+    $container.empty();
+
+    switch (type) {
+      case 'runtime':
+        const runtimeData = [
+          { name: '機台A', runtime: 1200 },
+          { name: '機台B', runtime: 800 },
+          { name: '機台C', runtime: 1500 }
+        ];
+        const canvas1 = document.createElement('canvas');
+        $container.append(canvas1);
+        new Chart(canvas1, {
+          type: 'bar',
+          data: {
+            labels: runtimeData.map(d => d.name),
+            datasets: [{
+              label: '運行時數 (小時)',
+              data: runtimeData.map(d => d.runtime),
+              backgroundColor: 'rgba(54, 162, 235, 0.6)'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              title: { display: true, text: '各設備運行時數' }
+            }
+          }
+        });
+        break;
+
+      case 'status':
+        const statusData = [
+          { status: '正常', count: 2 },
+          { status: '異常', count: 1 }
+        ];
+        const canvas2 = document.createElement('canvas');
+        $container.append(canvas2);
+        new Chart(canvas2, {
+          type: 'pie',
+          data: {
+            labels: statusData.map(d => d.status),
+            datasets: [{
+              data: statusData.map(d => d.count),
+              backgroundColor: ['#1dc9b7', '#fd3995']
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              title: { display: true, text: '設備狀態分布' }
+            }
+          }
+        });
+        break;
+
+      case 'maintenance':
+        const maintenanceData = [
+          { name: '機台A', count: 3 },
+          { name: '機台B', count: 5 },
+          { name: '機台C', count: 2 }
+        ];
+        const canvas3 = document.createElement('canvas');
+        $container.append(canvas3);
+        new Chart(canvas3, {
+          type: 'bar',
+          data: {
+            labels: maintenanceData.map(d => d.name),
+            datasets: [{
+              label: '維護次數',
+              data: maintenanceData.map(d => d.count),
+              backgroundColor: 'rgba(255, 159, 64, 0.6)'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              title: { display: true, text: '各設備維護次數' }
+            }
+          }
+        });
+        break;
+
+      case 'prediction':
+        const pred = [
+          { name: '機台A', runtime: 1200, last_maintenance: '2024-06-01 10:00' },
+          { name: '機台B', runtime: 800, last_maintenance: '2024-05-28 14:30' },
+          { name: '機台C', runtime: 1900, last_maintenance: '2024-06-05 09:15' }
+        ];
+        const predHtml = pred.map(d => {
+          const warn = d.runtime > 1800 ? '⚠️ 請安排維護' : '';
+          return `<div class="mb-2"><strong>${d.name}</strong>: ${d.runtime} 小時 (最後維護: ${d.last_maintenance}) ${warn}</div>`;
+        }).join('');
+        $container.html(predHtml);
+        break;
+    }
+  }
+
+  $(document).ready(function () {
+    // 初始載入
+    fetchDevices().then(renderDevices);
+    renderReport('runtime');
+
+    // 切換視圖
+    $('#btn-device-view').on('click', function () {
+      $(this).addClass('active');
+      $('#btn-report-view').removeClass('active');
+      $('#device-view').show();
+      $('#report-view').hide();
+    });
+
+    $('#btn-report-view').on('click', function () {
+      $(this).addClass('active');
+      $('#btn-device-view').removeClass('active');
+      $('#device-view').hide();
+      $('#report-view').show();
+      renderReport($('#report-selector').val());
+    });
+
+    // 報表下拉變更
+    $('#report-selector').on('change', function () {
+      renderReport($(this).val());
+    });
+
+    // 維護按鈕事件
+    $(document).on('click', '.btn-maintain', function () {
+      const deviceId = $(this).data('id');
+      const deviceName = $(this).data('name');
+      showMaintenanceForm(deviceId, deviceName);
+    });
+  });
+</script>
+{{/inline}}
+
+{{/layouts/main}}

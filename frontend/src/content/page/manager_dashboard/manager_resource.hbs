@@ -1,0 +1,220 @@
+{{#> 
+    layouts/main 
+    title="資源使用監測" 
+    pagename="manager_resource"
+    heading="資源使用監測"
+    category_1="主管專區"
+    pagedescription="有機廢棄物轉換效率監測"
+}}
+
+{{#*inline "head-block"}}
+<link rel="stylesheet" media="screen, print" href="css/statistics/chartjs/chartjs.css">
+<link rel="stylesheet" media="screen, print" href="css/miscellaneous/fullcalendar/fullcalendar.bundle.css">
+{{/inline}}
+
+{{#*inline "content-block"}}
+<!-- 總體效率概覽 -->
+<div class="row mb-4">
+    <div class="col-xl-12">
+        <div class="p-3 bg-primary-300 rounded overflow-hidden position-relative text-white">
+            <div class="">
+                <h3 class="display-4 d-block l-h-n m-0 fw-500">
+                    67.5%
+                    <small class="m-0 l-h-n">整體轉換效率</small>
+                </h3>
+                <span class="text-white-50">較上月提升 5.2%</span>
+            </div>
+            <i class="{{iconPrefix}} fa-recycle position-absolute pos-right pos-bottom opacity-15 mb-n1 mr-n1" style="font-size:6rem"></i>
+        </div>
+    </div>
+</div>
+
+<!-- 機台效率卡片 -->
+<div class="row">
+    <!-- 機台一 -->
+    <div class="col-xl-6">
+        <div id="panel-1" class="panel">
+            <div class="panel-hdr bg-fusion-100">
+                <h2 class="text-white">
+                    機台一 <span class="fw-300"><i>轉換效率</i></span>
+                </h2>
+                <div class="panel-toolbar">
+                    <button class="btn btn-panel hover-effect-dot" data-action="panel-collapse" data-toggle="tooltip" title="收合"></button>
+                    <button class="btn btn-panel hover-effect-dot" data-action="panel-fullscreen" data-toggle="tooltip" title="全螢幕"></button>
+                </div>
+            </div>
+            <div class="panel-container show">
+                <div class="panel-content">
+                    <div class="d-flex flex-column align-items-center">
+                        <!-- 圓形進度條 -->
+                        <div class="js-easy-pie-chart position-relative d-inline-flex align-items-center justify-content-center" data-percent="55" data-piesize="250" data-linewidth="20" data-linecap="butt" data-scalelength="7" data-toggle="tooltip" title="當前效率">
+                            <div class="d-flex flex-column align-items-center">
+                                <span class="display-3 font-weight-bold">55%</span>
+                                <span class="text-danger fs-xl">
+                                    <i class="{{iconPrefix}} fa-arrow-down"></i> 需改善
+                                </span>
+                            </div>
+                        </div>
+                        <!-- 詳細資訊 -->
+                        <div class="mt-4 w-100">
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted">廢棄物輸入量</span>
+                                <span class="text-success">1,200 kg</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted">肥料產出量</span>
+                                <span class="text-success">660 kg</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">運行時間</span>
+                                <span class="text-success">18 小時</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 機台二 -->
+    <div class="col-xl-6">
+        <div id="panel-2" class="panel panel-locked">
+            <div class="panel-hdr bg-success-700">
+                <h2 class="text-white">
+                    機台二 <span class="fw-300"><i>轉換效率</i></span>
+                </h2>
+                <div class="panel-toolbar">
+                    <button class="btn btn-panel hover-effect-dot" data-action="panel-collapse" data-toggle="tooltip" title="收合"></button>
+                    <button class="btn btn-panel hover-effect-dot" data-action="panel-fullscreen" data-toggle="tooltip" title="全螢幕"></button>
+                </div>
+            </div>
+            <div class="panel-container show">
+                <div class="panel-content">
+                    <div class="d-flex flex-column align-items-center">
+                        <!-- 圓形進度條 -->
+                        <div class="js-easy-pie-chart position-relative d-inline-flex align-items-center justify-content-center" data-percent="80" data-piesize="250" data-linewidth="20" data-linecap="butt" data-scalelength="7" data-toggle="tooltip" title="當前效率">
+                            <div class="d-flex flex-column align-items-center">
+                                <span class="display-3 font-weight-bold">80%</span>
+                                <span class="text-success fs-xl">
+                                    <i class="{{iconPrefix}} fa-arrow-up"></i> 良好
+                                </span>
+                            </div>
+                        </div>
+                        <!-- 詳細資訊 -->
+                        <div class="mt-4 w-100">
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted">廢棄物輸入量</span>
+                                <span class="text-success">1,500 kg</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted">肥料產出量</span>
+                                <span class="text-success">1,200 kg</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">運行時間</span>
+                                <span class="text-success">22 小時</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 效率趨勢圖 -->
+<div class="row">
+    <div class="col-xl-12">
+        <div id="panel-3" class="panel">
+            <div class="panel-hdr">
+                <h2>轉換效率趨勢</h2>
+                <div class="panel-toolbar">
+                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="收合"></button>
+                    <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="全螢幕"></button>
+                </div>
+            </div>
+            <div class="panel-container show">
+                <div class="panel-content">
+                    <div style="width:100%; height:300px;">
+                        <canvas id="efficiencyTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{/inline}}
+
+{{#*inline "scripts-block"}}
+<script src="/js/statistics/chartjs/chartjs.bundle.js"></script>
+<script src="/js/statistics/easypiechart/easypiechart.bundle.js"></script>
+<script>
+    $(document).ready(function() {
+        // 初始化圓形進度條
+        $('.js-easy-pie-chart').each(function() {
+            var $this = $(this);
+            var barColor = $this.data('percent') >= 70 ? '#1dc9b7' : '#fd3995';
+            
+            $this.easyPieChart({
+                barColor: barColor,
+                trackColor: '#eee',
+                scaleColor: false,
+                lineCap: 'butt',
+                lineWidth: 20,
+                size: 250,
+                animate: 1500,
+                onStep: function(from, to, percent) {
+                    $(this.el).find('span.display-3').text(Math.round(percent) + '%');
+                }
+            });
+        });
+
+        // 初始化效率趨勢圖
+        var ctx = document.getElementById('efficiencyTrendChart').getContext('2d');
+        var efficiencyChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00'],
+                datasets: [{
+                    label: '機台一效率',
+                    data: [52, 54, 53, 55, 56, 54, 55, 55],
+                    borderColor: '#fd3995',
+                    fill: false
+                }, {
+                    label: '機台二效率',
+                    data: [78, 79, 80, 81, 80, 79, 80, 80],
+                    borderColor: '#1dc9b7',
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true,
+                            max: 100
+                        },
+                        scaleLabel: {
+                            display: true,
+                            labelString: '效率 (%)'
+                        }
+                    }]
+                }
+            }
+        });
+
+        // 自動更新功能
+        function updateData() {
+            // 這裡可以添加AJAX調用來獲取最新數據
+            console.log('Updating efficiency data...');
+        }
+
+        // 每5分鐘更新一次
+        setInterval(updateData, 300000);
+    });
+</script>
+{{/inline}}
+
+{{/layouts/main}} 

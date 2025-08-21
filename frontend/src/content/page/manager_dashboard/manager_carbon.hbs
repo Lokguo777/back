@@ -1,0 +1,265 @@
+{{#> 
+    layouts/main 
+    title="碳排放概況監測" 
+    pagename="manager_carbon"
+    heading="碳排放概況監測"
+    category_1="主管專區"
+    pagedescription="掌握碳排總量與製成碳排比"
+}}
+
+{{#*inline "head-block"}}
+<link rel="stylesheet" media="screen, print" href="css/statistics/chartjs/chartjs.css">
+<link rel="stylesheet" media="screen, print" href="css/miscellaneous/fullcalendar/fullcalendar.bundle.css">
+{{/inline}}
+
+{{#*inline "content-block"}}
+<!-- 主要統計卡片 -->
+<div class="row">
+    <div class="col-sm-6 col-xl-3">
+        <div class="p-3 bg-success-300 rounded overflow-hidden position-relative text-white mb-g">
+            <div class="">
+                <h3 class="display-4 d-block l-h-n m-0 fw-500">
+                    2.4
+                    <small class="m-0 l-h-n">今日碳排量 (噸)</small>
+                </h3>
+                <span class="text-success-50">較昨日 <i class="{{iconPrefix}} fa-arrow-down"></i> -8%</span>
+            </div>
+            <i class="{{iconPrefix}} fa-leaf position-absolute pos-right pos-bottom opacity-15 mb-n1 mr-n1" style="font-size:6rem"></i>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="p-3 bg-warning-400 rounded overflow-hidden position-relative text-white mb-g">
+            <div class="">
+                <h3 class="display-4 d-block l-h-n m-0 fw-500">
+                    68.5
+                    <small class="m-0 l-h-n">本月碳排量 (噸)</small>
+                </h3>
+                <span class="text-warning-50">月預算剩餘 31.5 噸</span>
+            </div>
+            <i class="{{iconPrefix}} fa-chart-line position-absolute pos-right pos-bottom opacity-15 mb-n1 mr-n1" style="font-size:6rem"></i>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="p-3 bg-info-200 rounded overflow-hidden position-relative text-white mb-g">
+            <div class="">
+                <h3 class="display-4 d-block l-h-n m-0 fw-500">
+                    1,250
+                    <small class="m-0 l-h-n">碳信用額度 (點)</small>
+                </h3>
+                <span class="text-info-50">本月累積 +150 點</span>
+            </div>
+            <i class="{{iconPrefix}} fa-coin position-absolute pos-right pos-bottom opacity-15 mb-n1 mr-n4" style="font-size: 6rem;"></i>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="p-3 bg-primary-300 rounded overflow-hidden position-relative text-white mb-g">
+            <div class="">
+                <h3 class="display-4 d-block l-h-n m-0 fw-500">
+                    -12%
+                    <small class="m-0 l-h-n">年度減碳進度</small>
+                </h3>
+                <span class="text-primary-50">目標 -15%</span>
+            </div>
+            <i class="{{iconPrefix}} fa-bullseye position-absolute pos-right pos-bottom opacity-15 mb-n5 mr-n6" style="font-size: 8rem;"></i>
+        </div>
+    </div>
+</div>
+
+<!-- 碳排放趨勢圖 -->
+<div class="row">
+    <div class="col-xl-12">
+        <div id="panel-1" class="panel">
+            <div class="panel-hdr">
+                <h2>碳排放趨勢分析</h2>
+                <div class="panel-toolbar">
+                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="收合"></button>
+                    <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="全螢幕"></button>
+                </div>
+            </div>
+            <div class="panel-container show">
+                <div class="panel-content">
+                    <div class="btn-group btn-group-sm btn-group-toggle mb-3" data-toggle="buttons">
+                        <label class="btn btn-outline-secondary active">
+                            <input type="radio" name="timeRange" value="7" checked="checked"> 7天
+                        </label>
+                        <label class="btn btn-outline-secondary">
+                            <input type="radio" name="timeRange" value="30"> 30天
+                        </label>
+                        <label class="btn btn-outline-secondary">
+                            <input type="radio" name="timeRange" value="365"> 1年
+                        </label>
+                    </div>
+                    <div style="width:100%; height:400px;">
+                        <canvas id="carbonTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 碳排放熱點分析 -->
+<div class="row">
+    <div class="col-xl-6">
+        <div id="panel-2" class="panel">
+            <div class="panel-hdr">
+                <h2>碳排放熱點分析</h2>
+                <div class="panel-toolbar">
+                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="收合"></button>
+                    <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="全螢幕"></button>
+                </div>
+            </div>
+            <div class="panel-container show">
+                <div class="panel-content">
+                    <div style="width:100%; height:300px;">
+                        <canvas id="carbonHotspotChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-6">
+        <div id="panel-3" class="panel">
+            <div class="panel-hdr">
+                <h2>碳信用額度累積趨勢</h2>
+                <div class="panel-toolbar">
+                    <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="收合"></button>
+                    <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="全螢幕"></button>
+                </div>
+            </div>
+            <div class="panel-container show">
+                <div class="panel-content">
+                    <div style="width:100%; height:300px;">
+                        <canvas id="carbonCreditChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{/inline}}
+
+{{#*inline "scripts-block"}}
+<script src="/js/statistics/chartjs/chartjs.bundle.js"></script>
+<script>
+    $(document).ready(function() {
+        // 碳排放趨勢圖
+        var trendCtx = document.getElementById('carbonTrendChart').getContext('2d');
+        var trendChart = new Chart(trendCtx, {
+            type: 'bar',
+            data: {
+                labels: ['5/1', '5/2', '5/3', '5/4', '5/5', '5/6', '5/7'],
+                datasets: [{
+                    label: '碳排放量',
+                    type: 'bar',
+                    data: [2.8, 2.6, 2.5, 2.7, 2.4, 2.3, 2.4],
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1,
+                    yAxisID: 'y-axis-1'
+                }, {
+                    label: '趨勢線',
+                    type: 'line',
+                    data: [2.8, 2.6, 2.5, 2.7, 2.4, 2.3, 2.4],
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    fill: false,
+                    yAxisID: 'y-axis-1'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    yAxes: [{
+                        id: 'y-axis-1',
+                        type: 'linear',
+                        position: 'left',
+                        ticks: {
+                            beginAtZero: true
+                        },
+                        scaleLabel: {
+                            display: true,
+                            labelString: '碳排放量 (噸)'
+                        }
+                    }]
+                }
+            }
+        });
+
+        // 碳排放熱點分析
+        var hotspotCtx = document.getElementById('carbonHotspotChart').getContext('2d');
+        var hotspotChart = new Chart(hotspotCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['製程A', '製程B', '製程C', '其他'],
+                datasets: [{
+                    data: [45, 25, 20, 10],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 206, 86, 0.8)',
+                        'rgba(75, 192, 192, 0.8)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                legend: {
+                    position: 'right'
+                }
+            }
+        });
+
+        // 碳信用額度累積趨勢
+        var creditCtx = document.getElementById('carbonCreditChart').getContext('2d');
+        var creditChart = new Chart(creditCtx, {
+            type: 'line',
+            data: {
+                labels: ['1月', '2月', '3月', '4月', '5月'],
+                datasets: [{
+                    label: '碳信用額度',
+                    data: [800, 900, 1050, 1100, 1250],
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 2,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        },
+                        scaleLabel: {
+                            display: true,
+                            labelString: '碳信用額度 (點)'
+                        }
+                    }]
+                }
+            }
+        });
+
+        // 時間範圍切換
+        $('input[name="timeRange"]').change(function() {
+            var range = $(this).val();
+            // 這裡可以添加AJAX調用來獲取不同時間範圍的數據
+            console.log('Changing time range to: ' + range + ' days');
+        });
+
+        // 自動更新功能
+        function updateData() {
+            // 這裡可以添加AJAX調用來獲取最新數據
+            console.log('Updating data...');
+        }
+
+        // 每分鐘更新一次
+        setInterval(updateData, 60000);
+    });
+</script>
+{{/inline}}
+
+{{/layouts/main}} 

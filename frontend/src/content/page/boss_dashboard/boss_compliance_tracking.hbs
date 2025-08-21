@@ -1,0 +1,175 @@
+{{!-- views/boss_compliance_tracking.hbs --}}
+{{#> layouts/main
+    title="合規與驗證追蹤"
+    pagename="boss_compliance_tracking"
+    heading="合規與驗證追蹤"
+    category_1="老闆專區"
+    pagedescription="確保專案通過必要認證，合規並可產生有效碳信用，並即時掌握最新市場消息"}}
+
+  {{!-- head-block: 引入 CSS 並寫進度條與新聞卡片樣式 --}}
+  {{#*inline "head-block"}}
+    <link rel="stylesheet" href="/css/vendors.bundle.css"/>
+    <link rel="stylesheet" href="/css/app.bundle.css"/>
+    <style>
+      .dashboard-section { margin-bottom: 2rem; }
+      .stepper { display: flex; margin: 0 -1px; }
+      .step {
+        flex: 1;
+        padding: 0.6rem 0.8rem;
+        font-weight: bold;
+        color: #fff;
+        text-align: center;
+        clip-path: polygon(0 0,90% 0,100% 50%,90% 100%,0 100%,10% 50%);
+        background: #ddd;
+        margin-right: 1px;
+      }
+      .step.last {
+        clip-path: polygon(0 0,100% 0,100% 100%,0 100%);
+        margin-right: 0;
+      }
+      .step.completed { background: #4caf50; }
+      .step.current   { background: #ffc241; color: #333; }
+      .step.upcoming  { background: #dc3545; }
+      .news-card { background: #f8f9fa; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+      .news-title { font-weight: bold; font-size: 1.1rem; }
+      .news-meta { font-size: 0.9rem; color: #888; }
+    </style>
+  {{/inline}}
+
+  {{!-- content-block: 靜態 Demo --}}
+  {{#*inline "content-block"}}
+    <div class="row dashboard-section">
+      <!-- 關鍵數據與法規更新 -->
+      <div class="col-lg-4 mb-3">
+        <div class="panel">
+          <div class="panel-hdr"><h2>關鍵驗證數據</h2></div>
+          <div class="panel-container show">
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item d-flex justify-content-between">
+                已完成驗證 <span class="badge badge-success">3</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                進行中 <span class="badge badge-warning">2</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                逾期 <span class="badge badge-danger">1</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="panel mt-3">
+          <div class="panel-hdr"><h2>最新法規更新</h2></div>
+          <div class="panel-container show">
+            <div class="news-card">
+              <div class="news-title">台灣碳交易法草案三讀通過</div>
+              <div class="news-meta">2024-06-01</div>
+              <div>新法規將於2025年正式施行，影響所有碳信用專案。</div>
+            </div>
+            <div class="news-card">
+              <div class="news-title">歐盟CBAM正式上路</div>
+              <div class="news-meta">2024-05-20</div>
+              <div>出口歐盟產品需申報碳排放，請及早準備。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- 最新市場消息 -->
+      <div class="col-lg-8 mb-3">
+        <div class="panel">
+          <div class="panel-hdr"><h2>最新市場消息</h2></div>
+          <div class="panel-container show">
+            <div class="news-card">
+              <div class="news-title">全球碳信用市場交易量創新高</div>
+              <div class="news-meta">2024-06-05</div>
+              <div>根據ICAP報告，2024年全球碳市場交易量較去年成長25%。</div>
+            </div>
+            <div class="news-card">
+              <div class="news-title">國際碳標準機構推新認證流程</div>
+              <div class="news-meta">2024-06-03</div>
+              <div>Gold Standard與VCS同步簡化專案驗證流程，加速碳信用核發。</div>
+            </div>
+            <div class="news-card">
+              <div class="news-title">台灣首宗碳信用NFT交易完成</div>
+              <div class="news-meta">2024-05-28</div>
+              <div>結合區塊鏈技術，提升碳信用流通透明度。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row dashboard-section">
+      <div class="col-12">
+        <div class="panel">
+          <div class="panel-hdr"><h2>專案驗證進度</h2></div>
+          <div class="panel-container show">
+            <div class="panel-content">
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>專案名稱</th>
+                    <th>驗證機構</th>
+                    <th>截止時間</th>
+                    <th>狀態流程</th>
+                    <th>當前狀態</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>專案A</td>
+                    <td>Gold Standard</td>
+                    <td>2024-07-15</td>
+                    <td>
+                      <div class="stepper">
+                        <div class="step completed">準備中</div>
+                        <div class="step completed">文件送出</div>
+                        <div class="step current">審核中</div>
+                        <div class="step last upcoming">核發完成</div>
+                      </div>
+                    </td>
+                    <td><span class="badge badge-warning">審核中</span></td>
+                  </tr>
+                  <tr>
+                    <td>專案B</td>
+                    <td>VCS</td>
+                    <td>2024-06-30</td>
+                    <td>
+                      <div class="stepper">
+                        <div class="step completed">準備中</div>
+                        <div class="step completed">文件送出</div>
+                        <div class="step completed">審核中</div>
+                        <div class="step last completed">核發完成</div>
+                      </div>
+                    </td>
+                    <td><span class="badge badge-success">核發完成</span></td>
+                  </tr>
+                  <tr>
+                    <td>專案C</td>
+                    <td>Gold Standard</td>
+                    <td>2024-06-10</td>
+                    <td>
+                      <div class="stepper">
+                        <div class="step current">準備中</div>
+                        <div class="step upcoming">文件送出</div>
+                        <div class="step upcoming">審核中</div>
+                        <div class="step last upcoming">核發完成</div>
+                      </div>
+                    </td>
+                    <td><span class="badge badge-danger">逾期</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {{/inline}}
+
+  {{!-- scripts-block: 静态 demo，无动态脚本 --}}
+  {{#*inline "scripts-block"}}
+    <script src="/js/vendors.bundle.js"></script>
+    <script src="/js/app.bundle.js"></script>
+  {{/inline}}
+
+{{/layouts/main}}

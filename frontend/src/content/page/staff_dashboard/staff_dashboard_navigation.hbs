@@ -1,0 +1,172 @@
+{{#> 
+  layouts/main 
+  title="員工功能導覽" 
+  pagename="staff_dashboard_navigation"
+  heading="員工功能導覽"
+  category_1="員工儀表板"
+  pagedescription="系統功能概覽及使用指南"
+}}
+
+<div class="subheader">
+  <h1 class="subheader-title">
+    <i class="subheader-icon fal fa-compass"></i> 員工功能導覽
+    <small>
+      了解系統各項功能及操作方式
+    </small>
+  </h1>
+</div>
+
+<div class="row">
+  <div class="col-xl-12">
+    <div id="panel-1" class="panel">
+      <div class="panel-hdr">
+        <h2>
+          功能總覽 <span class="fw-300"><i>指南</i></span>
+        </h2>
+        <div class="panel-toolbar">
+          <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="摺疊"></button>
+          <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="全螢幕"></button>
+        </div>
+      </div>
+      <div class="panel-container show">
+        <div class="panel-content">
+          <div class="fs-lg fw-300 p-5 bg-white border-faded rounded mb-g">
+            <h2>歡迎使用員工操作台功能導覽</h2>
+            <p class="mb-g">
+              本頁面將協助您快速了解員工操作台的各項功能與操作方式，讓您能夠更有效率地使用系統。
+            </p>
+            
+            <div class="row">
+              <div class="col-md-6 mb-g">
+                <div class="card border">
+                  <div class="card-body">
+                    <h4 class="card-title">碳排放監控</h4>
+                    <p class="card-text">查看您所負責區域的即時碳排放數據，設置警報閾值，追蹤排放趨勢。</p>
+                    <a href="staff_dashboard.html" class="btn btn-primary">前往功能</a>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6 mb-g">
+                <div class="card border">
+                  <div class="card-body">
+                    <h4 class="card-title">設備管理</h4>
+                    <p class="card-text">管理監測設備，查看設備狀態，設定維護時間表，處理異常警報。</p>
+                    <a href="staff_dashboard.html" class="btn btn-primary">前往功能</a>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6 mb-g">
+                <div class="card border">
+                  <div class="card-body">
+                    <h4 class="card-title">數據分析</h4>
+                    <p class="card-text">分析歷史排放數據，生成報表，識別優化機會，制定減排策略。</p>
+                    <a href="staff_dashboard.html" class="btn btn-primary">前往功能</a>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6 mb-g">
+                <div class="card border">
+                  <div class="card-body">
+                    <h4 class="card-title">任務管理</h4>
+                    <p class="card-text">查看並管理您的排放監測任務，設置提醒，追蹤完成進度。</p>
+                    <a href="page_inbox_general.html" class="btn btn-primary">前往功能</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <h3>操作流程指南</h3>
+          <div class="accordion accordion-outline" id="js_demo_accordion-3">
+            <div class="card">
+              <div class="card-header">
+                <a href="javascript:void(0);" class="card-title" data-toggle="collapse" data-target="#js_demo_accordion-3a" aria-expanded="true">
+                  <i class="fal fa-file-chart-line width-2 fs-xl"></i>
+                  如何檢視碳排放數據
+                  <span class="ml-auto">
+                    <span class="collapsed-reveal">
+                      <i class="fal fa-minus fs-xl"></i>
+                    </span>
+                    <span class="collapsed-hidden">
+                      <i class="fal fa-plus fs-xl"></i>
+                    </span>
+                  </span>
+                </a>
+              </div>
+              <div id="js_demo_accordion-3a" class="collapse show" data-parent="#js_demo_accordion-3">
+                <div class="card-body">
+                  <ol class="mb-g">
+                    <li>登入員工操作台</li>
+                    <li>進入「碳排放監控」頁面</li>
+                    <li>選擇要查看的時間範圍</li>
+                    <li>選擇要查看的區域或設備</li>
+                    <li>查看數據圖表及詳細信息</li>
+                  </ol>
+                  <p>提示：您可以通過圖表右上角的選項導出數據或設置自動報告。</p>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <a href="javascript:void(0);" class="card-title collapsed" data-toggle="collapse" data-target="#js_demo_accordion-3b" aria-expanded="false">
+                  <i class="fal fa-wrench width-2 fs-xl"></i>
+                  如何管理監測設備
+                  <span class="ml-auto">
+                    <span class="collapsed-reveal">
+                      <i class="fal fa-minus fs-xl"></i>
+                    </span>
+                    <span class="collapsed-hidden">
+                      <i class="fal fa-plus fs-xl"></i>
+                    </span>
+                  </span>
+                </a>
+              </div>
+              <div id="js_demo_accordion-3b" class="collapse" data-parent="#js_demo_accordion-3">
+                <div class="card-body">
+                  <ol class="mb-g">
+                    <li>進入「設備管理」頁面</li>
+                    <li>查看設備列表及狀態</li>
+                    <li>點擊設備名稱查看詳情</li>
+                    <li>可進行校準、維護安排等操作</li>
+                    <li>對於故障設備，可提交維修請求</li>
+                  </ol>
+                  <p>提示：定期檢查設備狀態可提高數據準確性，建議每週至少檢查一次。</p>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <a href="javascript:void(0);" class="card-title collapsed" data-toggle="collapse" data-target="#js_demo_accordion-3c" aria-expanded="false">
+                  <i class="fal fa-bell width-2 fs-xl"></i>
+                  如何設置警報提醒
+                  <span class="ml-auto">
+                    <span class="collapsed-reveal">
+                      <i class="fal fa-minus fs-xl"></i>
+                    </span>
+                    <span class="collapsed-hidden">
+                      <i class="fal fa-plus fs-xl"></i>
+                    </span>
+                  </span>
+                </a>
+              </div>
+              <div id="js_demo_accordion-3c" class="collapse" data-parent="#js_demo_accordion-3">
+                <div class="card-body">
+                  <ol class="mb-g">
+                    <li>進入「碳排放監控」頁面</li>
+                    <li>點擊「警報設置」按鈕</li>
+                    <li>選擇要監控的參數</li>
+                    <li>設置閾值及通知方式</li>
+                    <li>保存設置</li>
+                  </ol>
+                  <p>提示：您可以設置不同級別的警報，並選擇通過系統通知、電子郵件或短信接收提醒。</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{/layouts/main}} 

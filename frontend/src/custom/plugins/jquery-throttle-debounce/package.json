@@ -1,0 +1,51 @@
+{
+  "_args": [
+    [
+      "github:myorangeca/jquery-throttle-debounce",
+      "C:\\Users\\sunny\\Desktop\\SmartAdmin\\smartadmin-html-full"
+    ]
+  ],
+  "_from": "github:myorangeca/jquery-throttle-debounce",
+  "_id": "jquery-throttle-debounce@github:myorangeca/jquery-throttle-debounce#4c00cd399e2f82bded5e1957e077e8736886d172",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/jquery-throttle-debounce",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "github:myorangeca/jquery-throttle-debounce",
+    "rawSpec": "github:myorangeca/jquery-throttle-debounce",
+    "saveSpec": "github:myorangeca/jquery-throttle-debounce",
+    "fetchSpec": null,
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "github:myorangeca/jquery-throttle-debounce#4c00cd399e2f82bded5e1957e077e8736886d172",
+  "_spec": "github:myorangeca/jquery-throttle-debounce",
+  "_where": "C:\\Users\\sunny\\Desktop\\SmartAdmin\\smartadmin-html-full",
+  "author": "",
+  "bugs": {
+    "url": "https://github.com/myorangeca/jquery-throttle-debounce/issues"
+  },
+  "dependencies": {},
+  "description": "[http://benalman.com/projects/jquery-throttle-debounce-plugin/](http://benalman.com/projects/jquery-throttle-debounce-plugin/)",
+  "devDependencies": {},
+  "directories": {
+    "doc": "docs",
+    "example": "examples"
+  },
+  "homepage": "https://github.com/myorangeca/jquery-throttle-debounce#readme",
+  "license": "MIT",
+  "main": "jquery.ba-throttle-debounce.js",
+  "name": "jquery-throttle-debounce",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/myorangeca/jquery-throttle-debounce.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.0.0"
+}

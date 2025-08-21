@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+{{> include/_copyright-header}}
+<html lang="en">
+	<head>
+		{{> include/_head}}
+
+		{{#> head-block}}
+			<script>
+				// 在頁面內容加載前設置角色
+				(function() {
+					const userRole = localStorage.getItem('userRole');
+					if (userRole) {
+						document.documentElement.setAttribute('data-user-role', userRole);
+					}
+				})();
+			</script>
+
+			<style>
+				/* 在頁面加載時隱藏所有角色相關內容 */
+				body:not([data-loaded="true"]) .role-nav-item {
+					display: none !important;
+				}
+			</style>
+
+			<!-- 新增：根據當前角色顯示對應側邊欄項 -->
+			<style>
+				.role-nav-item { display: none !important; }
+				html[data-user-role="boss"]    .role-nav-item[data-role="boss"],
+				html[data-user-role="manager"] .role-nav-item[data-role="manager"],
+				html[data-user-role="staff"]   .role-nav-item[data-role="staff"] {
+					display: block !important;
+				}
+			</style>
+
+			<!-- 新增：隱藏整個側邊欄菜單，防止頁面初始閃現 -->
+			<style>
+				#js-nav-menu { visibility: hidden !important; }
+			</style>
+
+			{{#each page-settings.js}}
+				<script src="{{this}}"></script>
+			{{/each}}
+			<!-- 添加主管導航狀態管理 -->
+			<script src="js/manager-nav.js"></script>
+
+			<!-- 新增：DOM 加載完成後顯示側邊欄 -->
+			<script>
+				document.addEventListener('DOMContentLoaded', function() {
+					const nav = document.getElementById('js-nav-menu');
+					if (nav) nav.style.visibility = '';
+				});
+			</script>
+		{{/head-block}}
+	</head>
+	<!-- BEGIN Body -->
+	<!-- Possible Classes
+
+		* 'header-function-fixed'         - header is in a fixed at all times
+		* 'nav-function-fixed'            - left panel is fixed
+		* 'nav-function-minify'          - skew nav to maximize space
+		* 'nav-function-hidden'           - roll mouse on edge to reveal
+		* 'nav-function-top'              - relocate left pane to top
+		* 'mod-main-boxed'                - encapsulates to a container
+		* 'nav-mobile-push'               - content pushed on menu reveal
+		* 'nav-mobile-no-overlay'         - removes mesh on menu reveal
+		* 'nav-mobile-slide-out'          - content overlaps menu
+		* 'mod-bigger-font'               - content fonts are bigger for readability
+		* 'mod-high-contrast'             - 4.5:1 text contrast ratio
+		* 'mod-color-blind'               - color vision deficiency
+		* 'mod-pace-custom'               - preloader will be inside content
+		* 'mod-clean-page-bg'             - adds more whitespace
+		* 'mod-hide-nav-icons'            - invisible navigation icons
+		* 'mod-disable-animation'         - disables css based animations
+		* 'mod-hide-info-card'            - hides info card from left panel
+		* 'mod-lean-subheader'            - distinguished page header
+		* 'mod-nav-link'                  - clear breakdown of nav links
+
+		>>> more settings are described inside documentation page >>>
+	-->  
+	<body class="mod-bg-1 mod-nav-link {{preemptiveclass}}">
+		
+		{{!-- save-settings-script --}}
+		{{> include/_scripts-loading-saving}}
+		
+		<!-- BEGIN Page Wrapper -->
+		<div class="page-wrapper">
+
+			<div class="page-inner">
+
+				{{> include/_left-panel }}
+
+				<div class="page-content-wrapper">
+					
+					{{> include/_page-header }}
+
+					<!-- BEGIN Page Content -->
+					<!-- the #js-page-content id is needed for some plugins to initialize -->
+                            <main id="js-page-content" role="main" class="page-content">
+                                {{#if preemptiveclass}}
+                                    <!-- Page heading removed for composed layout -->
+                                {{else}}
+                                    {{> include/_page-breadcrumb }}
+                                    <div class="subheader">{{> include/_page-heading }}{{#> subheader-block}}{{/subheader-block}}</div>
+                                {{/if}}
+                                {{#>content-block}}{{/content-block}}
+                            </main>
+					{{> include/_page-content-overlay }}
+					<!-- END Page Content -->
+
+					{{> include/_page-footer }}
+
+					{{> include/_shortcut-modal }}
+
+					{{> include/_color-profile-reference }}
+					
+				</div>
+
+			</div>
+
+		</div>
+		<!-- END Page Wrapper -->
+		
+		{{> include/_shortcut-menu }}
+		
+		{{> include/_shortcut-messenger }}
+
+		{{> include/_page-settings }}
+
+		{{!-- Google Analytics  code if GOOGLE_ANALYTICS_ID id available --}}
+		{{> include/_google_analytics }}
+		
+		{{> include/_scripts-base-plugins}}
+		{{#>scripts-block}}
+			{{!-- Custom scripts per page can be added. --}}
+		{{/scripts-block}}
+	</body>
+	<!-- END Body -->
+</html>
