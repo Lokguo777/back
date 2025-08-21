@@ -1,0 +1,194 @@
+{{#> 
+    layouts/main 
+    title="設備問題處理" 
+    pagename="staff_issue"
+    heading="設備問題處理"
+    category_1="員工專區"
+    pagedescription="回報設備或流程問題，並查看主管分配的處理任務"
+}}
+
+{{#*inline "head-block"}}
+<link rel="stylesheet" media="screen, print" href="css/notifications/sweetalert2/sweetalert2.bundle.css">
+<style>
+  /* 卡片陰影與圓角 */
+  .issue-card {
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1);
+  }
+  /* 表格列 hover 效果 */
+  #issue-table tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+  }
+  /* 操作按鈕固定寬度 */
+  .btn-update-status {
+    min-width: 5rem;
+  }
+</style>
+{{/inline}}
+
+{{#*inline "content-block"}}
+<div class="card issue-card mb-4">
+  <div class="card-header bg-primary-600 text-white d-flex justify-content-between align-items-center">
+    <h4 class="m-0"><i class="fal fa-tools mr-2"></i>問題清單</h4>
+    <button class="btn btn-outline-light btn-sm" id="btn-report-issue">
+      <i class="fal fa-plus mr-1"></i>回報問題
+    </button>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover table-striped align-middle mb-0" id="issue-table">
+        <thead class="thead-light">
+          <tr>
+            <th>問題描述</th>
+            <th>分配員工</th>
+            <th>狀態</th>
+            <th>緊急程度</th>
+            <th class="text-center">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- 由JS動態生成 -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{{/inline}}
+
+{{#*inline "scripts-block"}}
+<script src="js/notifications/sweetalert2/sweetalert2.bundle.js"></script>
+<script>
+    // 假設API回傳格式
+    // [
+    //   { id: 1, desc: "機台A異常", assigned: "EMP001", status: "待處理", level: "高", isMine: true },
+    //   { id: 2, desc: "流程卡住", assigned: "EMP002", status: "處理中", level: "中", isMine: false }
+    // ]
+
+    function fetchIssues() {
+        // TODO: 換成實際API
+        return Promise.resolve([
+            { id: 1, desc: "機台A異常", assigned: "EMP001", status: "待處理", level: "高", isMine: true },
+            { id: 2, desc: "流程卡住", assigned: "EMP002", status: "處理中", level: "中", isMine: false },
+            { id: 3, desc: "機台B異常", assigned: "EMP001", status: "已完成", level: "低", isMine: true }
+        ]);
+    }
+
+    function renderIssues(issues) {
+        const $tbody = $('#issue-table tbody');
+        $tbody.empty();
+        issues.forEach(issue => {
+            const statusColor = issue.status === '已完成' ? 'badge-success' :
+                                issue.status === '處理中' ? 'badge-warning' : 'badge-danger';
+            const levelColor = issue.level === '高' ? 'badge-danger' :
+                               issue.level === '中' ? 'badge-warning' : 'badge-info';
+            let actionBtn = '';
+            // 只有自己被分配的任務才能操作
+            if (issue.isMine && issue.status !== '已完成') {
+                actionBtn = `<button class="btn btn-success btn-sm btn-update-status" data-id="${issue.id}">標記完成</button>`;
+            }
+            $tbody.append(`
+                <tr>
+                    <td>${issue.desc}</td>
+                    <td>${issue.assigned}</td>
+                    <td><span class="badge ${statusColor}">${issue.status}</span></td>
+                    <td><span class="badge ${levelColor}">${issue.level}</span></td>
+                    <td>${actionBtn}</td>
+                </tr>
+            `);
+        });
+    }
+
+    // 回報問題表單
+    function showReportForm() {
+        Swal.fire({
+            title: '回報設備/流程問題',
+            html: `
+                <div class="form-group text-left">
+                    <label>問題類型</label>
+                    <select id="issue-type" class="form-control">
+                        <option value="設備">設備</option>
+                        <option value="流程">流程</option>
+                    </select>
+                </div>
+                <div class="form-group text-left">
+                    <label>問題描述</label>
+                    <textarea id="issue-desc" class="form-control" rows="3" placeholder="請輸入問題描述"></textarea>
+                </div>
+                <div class="form-group text-left">
+                    <label>緊急程度</label>
+                    <select id="issue-level" class="form-control">
+                        <option value="高">高</option>
+                        <option value="中">中</option>
+                        <option value="低">低</option>
+                    </select>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: '送出',
+            cancelButtonText: '取消',
+            preConfirm: () => {
+                const type = document.getElementById('issue-type').value;
+                const desc = document.getElementById('issue-desc').value.trim();
+                const level = document.getElementById('issue-level').value;
+                if (!desc) {
+                    Swal.showValidationMessage('請填寫問題描述');
+                }
+                return { type, desc, level };
+            }
+        }).then(result => {
+            if (result.isConfirmed) {
+                // TODO: 呼叫API送出問題
+                const report = {
+                    staff_id: staffId,
+                    type: result.value.type,
+                    desc: result.value.desc,
+                    level: result.value.level,
+                    time: new Date().toISOString()
+                };
+                // 假設API呼叫
+                console.log('問題回報:', report);
+                Swal.fire('已送出', '問題已回報並通知主管', 'success');
+                // 重新刷新
+                fetchIssues().then(renderIssues);
+            }
+        });
+    }
+
+    // 標記完成
+    $(document).on('click', '.btn-update-status', function() {
+        const issueId = $(this).data('id');
+        Swal.fire({
+            title: '確認完成？',
+            text: '確定要將此問題標記為已完成嗎？',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: '確定',
+            cancelButtonText: '取消'
+        }).then(result => {
+            if (result.isConfirmed) {
+                // TODO: 呼叫API更新狀態
+                console.log('問題已完成:', issueId);
+                Swal.fire('已完成', '問題狀態已更新', 'success');
+                // 重新刷新
+                fetchIssues().then(renderIssues);
+            }
+        });
+    });
+
+    // 綁定回報按鈕
+    $('#btn-report-issue').on('click', showReportForm);
+
+    // 定時刷新
+    function refreshIssues() {
+        fetchIssues().then(renderIssues);
+    }
+
+    $(document).ready(function() {
+        refreshIssues();
+        // 每30秒自動刷新
+        setInterval(refreshIssues, 30000);
+    });
+</script>
+{{/inline}}
+
+{{/layouts/main}} 

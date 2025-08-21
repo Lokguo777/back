@@ -1,0 +1,293 @@
+{{#> layouts/main
+  title="财务绩效报表"
+  pagename="boss_finance_report"
+  heading="财务绩效报表"
+  category_1="老板专区"
+  pagedescription="掌握整体与项目别的财务表现、现金流与预测，支持策略与资金配置"
+}}
+
+{{#*inline "head-block"}}
+<link rel="stylesheet" media="screen, print" href="css/statistics/chartjs/chartjs.css">
+<link rel="stylesheet" media="screen, print" href="css/vendors.bundle.css"/>
+<link rel="stylesheet" media="screen, print" href="css/app.bundle.css"/>
+<style>
+  /* KPI 样式 */
+  .kpi-row .kpi-item { text-align: center; }
+  .kpi-row .kpi-item .label { font-size: 0.95rem; color: #666; }
+  .kpi-row .kpi-item .value { font-size: 1.6rem; font-weight: bold; margin-top: 0.25rem; }
+
+  /* 响应式图表容器 */
+  .chart-container { 
+    position: relative; 
+    width: 100%; 
+    height: 300px; 
+    margin-bottom: 1rem;
+  }
+  .tab-content .tab-pane { margin-top: 1rem; }
+</style>
+{{/inline}}
+
+{{#*inline "content-block"}}
+<div class="container-fluid">
+  <!-- 四大 KPI -->
+  <div class="row kpi-row mb-4">
+    <div class="col-6 col-md-3 kpi-item">
+      <div class="label">资产负债率</div>
+      <div class="value">47.338%</div>
+    </div>
+    <div class="col-6 col-md-3 kpi-item">
+      <div class="label">销售净利率</div>
+      <div class="value">63.977%</div>
+    </div>
+    <div class="col-6 col-md-3 kpi-item">
+      <div class="label">毛利率</div>
+      <div class="value">74.286%</div>
+    </div>
+    <div class="col-6 col-md-3 kpi-item">
+      <div class="label">主营业务利润率</div>
+      <div class="value">73.810%</div>
+    </div>
+  </div>
+
+  <!-- Tab 导航 -->
+  <ul class="nav nav-tabs" role="tablist">
+    <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#tab-operation">运营分析</a></li>
+    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tab-liquidity">偿债能力</a></li>
+    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tab-profit">盈利分析</a></li>
+    <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tab-trend">发展趋势</a></li>
+  </ul>
+  <div class="tab-content">
+    <!-- 运营分析 -->
+    <div id="tab-operation" class="tab-pane fade show active">
+      <div class="row">
+        <div class="col-lg-8">
+          <div class="chart-container">
+            <canvas id="operationBarChart"></canvas>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="chart-container">
+            <canvas id="costPieChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 偿债能力 -->
+    <div id="tab-liquidity" class="tab-pane fade">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="chart-container">
+            <canvas id="cashDoughnutChart"></canvas>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="chart-container">
+            <canvas id="speedDoughnutChart"></canvas>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="chart-container">
+            <canvas id="cashRatioDoughnutChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 盈利分析 -->
+    <div id="tab-profit" class="tab-pane fade">
+      <div class="row">
+        <div class="col-12">
+          <div class="chart-container">
+            <canvas id="profitBarChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 发展趋势 -->
+    <div id="tab-trend" class="tab-pane fade">
+      <div class="row">
+        <div class="col-12">
+          <div class="chart-container">
+            <canvas id="trendLineChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{{/inline}}
+
+{{#*inline "scripts-block"}}
+<script src="/js/vendors.bundle.js"></script>
+<script src="/js/app.bundle.js"></script>
+<script src="js/statistics/chartjs/chartjs.bundle.js"></script>
+<script>
+$(document).ready(function() {
+  // 等待所有資源加載完成後再初始化圖表
+  $(window).on('load', function() {
+    initializeCharts();
+  });
+
+  // 切換標籤頁時重新渲染圖表
+  $('a[data-toggle="tab"]').on('shown.bs.tab', function() {
+    setTimeout(initializeCharts, 100);
+  });
+
+  function initializeCharts() {
+    // 營運分析柱狀圖
+    var opBar = new Chart(document.getElementById('operationBarChart').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: ['存貨周轉率', '應收帳款周轉率', '流動資產周轉率', '固定資產周轉率', '總資產周轉率'],
+        datasets: [{
+          label: '比率',
+          data: [4.23, 5.39, 7.04, 3.92, 2.52],
+          backgroundColor: '#4caf50'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 8
+          }
+        }
+      }
+    });
+
+    // 成本效益圓餅圖
+    var costPie = new Chart(document.getElementById('costPieChart').getContext('2d'), {
+      type: 'pie',
+      data: {
+        labels: ['成本費用淨利率', '主營業務利潤率'],
+        datasets: [{
+          data: [73.81, 79.33],
+          backgroundColor: ['#2196f3', '#ffc241']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right'
+          }
+        }
+      }
+    });
+
+    // 現金狀況環狀圖
+    var cashDoughnut = new Chart(document.getElementById('cashDoughnutChart').getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: ['流動比率', '速動比率', '現金比率'],
+        datasets: [{
+          data: [6.45, 4.17, 3.51],
+          backgroundColor: ['#1dc9b7', '#fd3995', '#ffc241']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right'
+          }
+        }
+      }
+    });
+
+    // 速動比率圖
+    var speedDoughnut = new Chart(document.getElementById('speedDoughnutChart').getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: ['速動比率', '現金比率'],
+        datasets: [{
+          data: [4.17, 3.51],
+          backgroundColor: ['#1dc9b7', '#fd3995']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right'
+          }
+        }
+      }
+    });
+
+    // 現金比率圖
+    var cashRatioDoughnut = new Chart(document.getElementById('cashRatioDoughnutChart').getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: ['現金比率', '速動比率'],
+        datasets: [{
+          data: [3.51, 4.17],
+          backgroundColor: ['#1dc9b7', '#fd3995']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right'
+          }
+        }
+      }
+    });
+
+    // 發展趨勢折線圖
+    var trendLine = new Chart(document.getElementById('trendLineChart').getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: ['營業增長率', '資本積累率', '總資本增長率'],
+        datasets: [{
+          label: '增長率',
+          data: [13.62, 22.32, 26.51],
+          borderColor: '#fd3995',
+          backgroundColor: 'rgba(253,57,149,0.1)',
+          fill: true,
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+
+    // 盈利分析柱狀圖
+    var profitBar = new Chart(document.getElementById('profitBarChart').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: ['資本報酬率', '淨資本報酬率'],
+        datasets: [
+          {label:'期初', data:[1.58, 1.03], backgroundColor:'#2196f3'},
+          {label:'期末', data:[1.81, 1.18], backgroundColor:'#fd3995'}
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  }
+});
+</script>
+{{/inline}}
+
+{{/layouts/main}}

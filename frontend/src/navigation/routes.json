@@ -1,0 +1,36 @@
+[
+    {
+        "category": "应用程序",
+        "items": [
+            {
+                "title": "仪表盘",
+                "tags": "dashboard home",
+                "i18n": "nav.dashboard",
+                "icon": "fad fa-desktop-alt",
+                "items": [
+                    {
+                        "title": "老板仪表盘",
+                        "tags": "boss dashboard summary",
+                        "i18n": "nav.dashboard_boss",
+                        "href": "page_boss_dashboard.html",
+                        "roles": ["boss"]
+                    },
+                    {
+                        "title": "主管仪表盘",
+                        "tags": "manager dashboard monitor",
+                        "i18n": "nav.dashboard_manager",
+                        "href": "page_manager_dashboard.html",
+                        "roles": ["manager"]
+                    },
+                    {
+                        "title": "员工仪表盘",
+                        "tags": "staff dashboard operation",
+                        "i18n": "nav.dashboard_staff",
+                        "href": "page_staff_dashboard.html",
+                        "roles": ["staff"]
+                    }
+                ]
+            }
+        ]
+    }
+] 

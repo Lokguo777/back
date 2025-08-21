@@ -1,0 +1,338 @@
+{{#> layouts/main 
+    title="工作排程" 
+    pagename="staff_schedule"
+    heading="工作排程"
+    category_1="員工專區"
+    pagedescription="查看當日/當週的工作排程"
+}}
+
+{{#*inline "head-block"}}
+  <!-- 1. FullCalendar 核心样式 -->
+  <link rel="stylesheet" media="screen, print" href="css/miscellaneous/fullcalendar/fullcalendar.bundle.css" />
+  <!-- 2. FullCalendar Bootstrap 主题样式（如果你用 themeSystem: 'bootstrap'）-->
+  <link rel="stylesheet" media="screen, print" href="css/miscellaneous/fullcalendar/fullcalendar.bootstrap.bundle.css" />
+  <!-- 3. SweetAlert2 样式 -->
+  <link rel="stylesheet" media="screen, print" href="css/notifications/sweetalert2/sweetalert2.bundle.css" />
+
+  <!-- 4. Moment.js（一定要在 fullcalendar JS 之前）-->
+  <script src="js/dependency/moment/moment.js"></script>
+  <!-- 5. FullCalendar 核心与各插件（dayGrid, timeGrid, list, interaction, bootstrap）-->
+  <script src="js/miscellaneous/fullcalendar/fullcalendar.bundle.js"></script>
+
+{{/inline}}
+
+{{#*inline "content-block"}}
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <button id="btn-calendar-view" class="btn btn-outline-primary btn-sm mr-2 active">日曆檢視</button>
+      <button id="btn-list-view" class="btn btn-outline-secondary btn-sm">列表檢視</button>
+    </div>
+    <h4 class="m-0">本週工作排程</h4>
+  </div>
+  <div class="row">
+    <div class="col-12 col-lg-10 offset-lg-1">
+      <div id="calendar-view">
+        <div id="panel-3" class="panel">
+          <div class="panel-hdr"> 
+            <h2 class="js-get-date"></h2>
+          </div>
+          <div class="panel-container show">
+            <div class="panel-content">
+              <div id="calendar"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="list-view" class="list-card" style="display:none;">
+    <div class="card-body p-0">
+      <table id="schedule-table" class="table table-bordered table-hover w-100 mb-0">
+        <thead>
+          <tr><th>任務名稱</th><th>時間</th><th>負責人</th><th>狀態</th><th>操作</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+{{/inline}}
+
+{{#*inline "scripts-block"}}
+  <!-- 1. jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- 2. Throttle/Debounce 插件 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-throttle-debounce/1.1/jquery.ba-throttle-debounce.min.js"></script>
+  <!-- 3. Bootstrap Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- 4. SmartAdmin 核心 -->
+  <script src="js/app.bundle.js"></script>
+  <!-- 5. SweetAlert2 脚本 -->
+  <script src="js/notifications/sweetalert2/sweetalert2.bundle.js"></script>
+
+<script>
+$(document).ready(function () {
+  let calendar = null;
+  let currentSchedule = [];
+
+  // ---- 假資料；實際用後端 API 換掉這個 ----
+  function fetchSchedule() {
+    // TODO: 用 fetch/$.ajax 從後端撈該員工的任務清單
+    return Promise.resolve([
+      { id:1, title:'廢料處理', start:'2024-06-10T09:00:00', end:'2024-06-10T10:00:00', owner:'EMP001', status:'未完成', desc:'處理廢料', returned: false },
+      { id:2, title:'設備操作', start:'2024-06-10T13:00:00', end:'2024-06-10T14:00:00', owner:'EMP001', status:'完成', desc:'操作機台A', returned: false },
+      { id:3, title:'安全檢查', start:'2024-06-11T10:00:00', end:'2024-06-11T11:00:00', owner:'EMP001', status:'申請中', desc:'檢查安全設施', returned: false },
+      { id:4, title:'文件整理', start:'2024-06-12T09:00:00', end:'2024-06-12T11:00:00', owner:'EMP001', status:'未完成', desc:'整理報表', returned: true, rejectReason: '缺少上次審核要求的附檔內容' } // 被退回範例
+    ]).then(data => {
+      currentSchedule = data;
+      return data;
+    });
+  }
+
+  // ---- 工具函式 ----
+  function escapeHtml(str) {
+    return String(str)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#39;');
+  }
+
+  function statusToCalendarClass(status, returned) {
+    if (status === '未完成') {
+      if (returned) return 'bg-warning border-danger text-dark'; // 被退回提示
+      return 'bg-warning border-warning text-dark';
+    }
+    if (status === '申請中') return 'bg-info border-info';
+    if (status === '完成') return 'bg-success border-success text-white';
+    return '';
+  }
+
+  function badgeClass(status, returned) {
+    if (status === '未完成') {
+      return returned ? 'badge-danger' : 'badge-danger';
+    }
+    if (status === '申請中') return 'badge-info';
+    if (status === '完成') return 'badge-success';
+    return 'badge-secondary';
+  }
+
+  function mapToCalendarEvents(schedule) {
+    return schedule.map(e => ({
+      id: String(e.id),
+      title: e.title,
+      start: e.start,
+      end: e.end,
+      className: statusToCalendarClass(e.status, e.returned),
+      extendedProps: { raw: e }
+    }));
+  }
+
+  // ---- Calendar 初始化與同步 ----
+  function initCalendar() {
+    if (calendar) return;
+    const calendarEl = document.getElementById('calendar');
+    calendar = new FullCalendar.Calendar(calendarEl, {
+      plugins: ['dayGrid', 'list', 'timeGrid', 'interaction', 'bootstrap'],
+      themeSystem: 'bootstrap',
+      timeZone: 'UTC',
+      buttonText: {
+        today: 'today',
+        month: 'month',
+        week: 'week',
+        day: 'day',
+        list: 'list'
+      },
+      eventTimeFormat: {
+        hour: 'numeric',
+        minute: '2-digit',
+        meridiem: 'short'
+      },
+      navLinks: true,
+      header: {
+        left: 'title',
+        center: '',
+        right: 'today prev,next'
+      },
+      footer: {
+        left: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek',
+        center: '',
+        right: ''
+      },
+      editable: false,
+      eventLimit: true,
+      events: function(fetchInfo, successCallback) {
+        successCallback(mapToCalendarEvents(currentSchedule));
+      },
+      eventClick: function(info) {
+        const raw = info.event.extendedProps.raw;
+        if (raw) showTaskDetail(raw);
+      },
+      viewSkeletonRender: function() {
+        $('.fc-toolbar .btn-default').addClass('btn-sm');
+        $('.fc-header-toolbar h2').addClass('fs-md');
+        $('#calendar').addClass('fc-reset-order');
+      }
+    });
+    calendar.render();
+  }
+
+  function refreshCalendarEvents() {
+    if (!calendar) return;
+    calendar.removeAllEvents();
+    calendar.addEventSource(mapToCalendarEvents(currentSchedule));
+  }
+
+  // ---- 狀態更新（員工端申請 / 重新開始） ----
+  function updateTaskStatus(id, newStatus) {
+    const task = currentSchedule.find(t => String(t.id) === String(id));
+    if (!task) return;
+    task.status = newStatus;
+    if (newStatus === '申請中' || newStatus === '完成') {
+      task.returned = false;
+      delete task.rejectReason;
+    }
+    renderList(currentSchedule);
+    refreshCalendarEvents();
+  }
+
+  function clearReturned(id) {
+    const task = currentSchedule.find(t => String(t.id) === String(id));
+    if (!task) return;
+    task.returned = false;
+    // 保持 status 為 未完成
+    renderList(currentSchedule);
+    refreshCalendarEvents();
+  }
+
+  // ---- 詳情視窗 ----
+  function showTaskDetail(e) {
+    let extraNote = '';
+    if (e.status === '未完成' && e.returned) {
+      extraNote = '<p style="color:#d9534f;"><strong>備註：</strong>此任務已被退回，請重新處理後再申請。</p>';
+    }
+    let rejectReasonHtml = '';
+    if (e.returned && e.rejectReason) {
+      rejectReasonHtml = `
+        <p><strong>退回原因：</strong></p>
+        <div style="background:#f8d7da; padding:8px; border-radius:4px; color:#842029; margin-bottom:8px;">
+          ${escapeHtml(e.rejectReason)}
+        </div>
+      `;
+    }
+    Swal.fire({
+      title: e.title,
+      html: `
+        ${extraNote}
+        ${rejectReasonHtml}
+        <p><strong>描述：</strong>${e.desc}</p>
+        <p><strong>負責人：</strong>${e.owner}</p>
+        <p><strong>時間：</strong>${e.start.replace('T',' ')} ~ ${e.end.replace('T',' ')}</p>
+        <p><strong>狀態：</strong>${e.status}${e.status==='未完成' && e.returned ? '（已退回）' : ''}</p>
+      `,
+      showCloseButton: true,
+      showConfirmButton: false
+    });
+  }
+
+  // ---- 列表渲染 ----
+  function renderList(events) {
+    const $tb = $('#schedule-table tbody').empty();
+    events.forEach(e => {
+      let rowClass = '';
+      if (e.status === '未完成' && e.returned) rowClass = 'table-danger';
+      else if (e.status === '未完成') rowClass = 'table-warning';
+      else if (e.status === '申請中') rowClass = 'table-info';
+      else if (e.status === '完成') rowClass = '';
+
+      let actionButtons = '';
+      if (e.status === '未完成' && !e.returned) {
+        actionButtons = `<button class="btn btn-warning btn-sm btn-apply-task" data-id="${e.id}">申請</button>`;
+      } else if (e.status === '未完成' && e.returned) {
+        actionButtons = `<button class="btn btn-secondary btn-sm btn-restart-task" data-id="${e.id}">重新開始</button>`;
+      }
+
+      $tb.append(`
+        <tr class="${rowClass}">
+          <td>${e.title}</td>
+          <td>${e.start.replace('T',' ').slice(0,16)} ~ ${e.end.replace('T',' ').slice(0,16)}</td>
+          <td>${e.owner}</td>
+          <td><span class="badge ${badgeClass(e.status, e.returned)}">${e.status}${e.status==='未完成' && e.returned ? '（已退回）' : ''}</span></td>
+          <td>
+            <button class="btn btn-info btn-sm btn-task-detail" data-id="${e.id}">詳情</button>
+            ${actionButtons}
+          </td>
+        </tr>
+      `);
+    });
+  }
+
+  // ---- 視圖切換 ----
+  $('#btn-calendar-view').on('click', function() {
+    $(this).addClass('active');
+    $('#btn-list-view').removeClass('active');
+    $('#calendar-view').show();
+    $('#list-view').hide();
+    if (!calendar) initCalendar();
+  });
+  $('#btn-list-view').on('click', function() {
+    $(this).addClass('active');
+    $('#btn-calendar-view').removeClass('active');
+    $('#calendar-view').hide();
+    $('#list-view').show();
+    fetchSchedule().then(events => {
+      renderList(events);
+    });
+  });
+
+  // ---- 事件代理：申請 / 重新開始 / 詳情 ----
+  $(document).on('click', '.btn-apply-task', function() {
+    const id = $(this).data('id');
+    Swal.fire({
+      title: '送出申請？',
+      text: '是否要將此任務送出給主管審查？',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: '送出'
+    }).then(r => {
+      if (r.isConfirmed) {
+        // TODO: 呼叫後端 API 送出申請（status -> 申請中）
+        updateTaskStatus(id, '申請中');
+        Swal.fire('已送出申請','','success');
+      }
+    });
+  });
+
+  $(document).on('click', '.btn-restart-task', function() {
+    const id = $(this).data('id');
+    Swal.fire({
+      title: '重新開始？',
+      text: '是否要針對此任務重新開始處理？',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: '重新開始'
+    }).then(r => {
+      if (r.isConfirmed) {
+        // TODO: 可呼叫後端 API 清除退回標記（如果後端有 tracking returned）
+        clearReturned(id);
+        Swal.fire('已重新開始','','info');
+      }
+    });
+  });
+
+  $(document).on('click', '.btn-task-detail', function() {
+    const id = $(this).data('id');
+    const e = currentSchedule.find(x => String(x.id) === String(id));
+    if (e) showTaskDetail(e);
+  });
+
+  // ---- 初始載入 ----
+  fetchSchedule().then(() => {
+    renderList(currentSchedule);
+    initCalendar();
+  });
+});
+</script>
+{{/inline}}
+
+{{/layouts/main}}

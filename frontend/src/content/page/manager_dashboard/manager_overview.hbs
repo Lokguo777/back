@@ -1,0 +1,268 @@
+{{#> 
+    layouts/main 
+    title="主管總覽" 
+    pagename="manager_overview"
+    heading="主管總覽"
+    category_1="主管專區"
+    pagedescription="快速掌握關鍵指標與狀態"
+}}
+
+{{#*inline "head-block"}}
+<link rel="stylesheet" media="screen, print" href="css/vendors.bundle.css"/>
+<link rel="stylesheet" media="screen, print" href="css/app.bundle.css"/>
+<link rel="stylesheet" media="screen, print" href="css/statistics/chartist/chartist.css">
+<link rel="stylesheet" media="screen, print" href="css/statistics/chartjs/chartjs.css">
+<style>
+  #alert-toast {
+    position: fixed;
+    top: 80px;
+    right: 30px;
+    z-index: 9999;
+    min-width: 320px;
+    display: none;
+    cursor: pointer;
+  }
+</style>
+{{/inline}}
+
+{{#*inline "content-block"}}
+<!-- 即時異常通知彈窗（僅有異常時顯示） -->
+<div id="alert-toast" class="alert alert-danger alert-dismissible fade show shadow" role="alert">
+  <strong>即時異常通知：</strong> 機台一發生異常，請立即處理！
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close" style="outline:none;">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+
+<!-- 中間：KPI區塊 -->
+<div class="row mb-3">
+  <div class="col-xl-12">
+    <div id="panel-1" class="panel">
+      <div class="panel-hdr">
+        <h2>
+          KPI 趨勢圖
+        </h2>
+      </div>
+      <div class="panel-container show">
+        <div class="panel-content">
+          <canvas id="kpiTrendChart" style="width: 100%; height: 300px;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 下方：左右分欄 -->
+<div class="row">
+  <!-- 左側：機台狀態卡片 -->
+  <div class="col-lg-4 mb-3">
+    <div class="panel">
+      <div class="panel-hdr d-flex align-items-center justify-content-between">
+        <span>機台狀態</span>
+        <div class="panel-toolbar">
+          <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="收合"></button>
+          <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="全螢幕"></button>
+          <button class="btn btn-panel" data-action="panel-close" data-toggle="tooltip" data-offset="0,10" data-original-title="刪除"></button>
+        </div>
+      </div>
+      <div class="panel-container show">
+        <div class="panel-content" style="height: 400px;">
+          <div class="mb-2 p-2 border rounded d-flex justify-content-between align-items-center">
+            <span>機台一</span>
+            <span class="text-primary">30%</span>
+          </div>
+          <div class="mb-2 p-2 border rounded d-flex justify-content-between align-items-center">
+            <span>機台二</span>
+            <span class="text-primary">50%</span>
+          </div>
+          <div class="p-2 border rounded d-flex justify-content-between align-items-center">
+            <span>（預留）</span>
+            <span class="text-primary">--%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- 右側：時間下拉、圓餅圖、折線圖 -->
+  <div class="col-lg-8 mb-3">
+    <div class="row">
+      <div class="col-12 mb-3">
+        <div class="panel">
+          <div class="panel-hdr d-flex align-items-center justify-content-between">
+            <span>碳排放概況</span>
+            <select id="timeRange" class="form-control form-control-sm w-auto">
+              <option value="7">近7天</option>
+              <option value="30">近30天</option>
+              <option value="365">近一年</option>
+            </select>
+          </div>
+          <div class="panel-container show">
+            <div class="panel-content" style="height: 400px;">
+              <div class="d-flex flex-wrap">
+                <div class="flex-fill" style="min-width:220px;max-width:320px;">
+                  <canvas id="pieChart" style="width:100%;height:260px;"></canvas>
+                </div>
+                <div class="flex-fill" style="min-width:220px;max-width:320px;">
+                  <canvas id="trendChart" style="width:100%;height:260px;"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{{/inline}}
+
+{{#*inline "scripts-block"}}
+<script src="/js/vendors.bundle.js"></script>
+<script src="/js/app.bundle.js"></script>
+<script src="/js/statistics/chartjs/chartjs.bundle.js"></script>
+<script>
+$(document).ready(function() {
+  // KPI 趨勢圖
+  var ctx = document.getElementById('kpiTrendChart').getContext('2d');
+  var kpiTrendChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+      datasets: [{
+        label: 'KPI 達成率',
+        data: [85, 88, 92, 90, 95, 93, 96, 98, 97, 99, 100, 102],
+        borderColor: 'rgb(75, 192, 192)',
+        tension: 0.1,
+        fill: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: '達成率 (%)'
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: '月份'
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          position: 'top',
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return context.dataset.label + ': ' + context.parsed.y + '%';
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // 圓餅圖
+  var pieCtx = document.getElementById('pieChart').getContext('2d');
+  var pieChart = new Chart(pieCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['直接排放', '間接排放', '其他排放'],
+      datasets: [{
+        data: [45, 35, 20],
+        backgroundColor: ['#fd3995', '#1dc9b7', '#ffc241']
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      legend: { 
+        position: 'bottom',
+        labels: {
+          padding: 20
+        }
+      },
+      title: {
+        display: true,
+        text: '碳排放來源分布'
+      }
+    }
+  });
+
+  // 折線圖
+  var trendCtx = document.getElementById('trendChart').getContext('2d');
+  var trendChart = new Chart(trendCtx, {
+    type: 'line',
+    data: {
+      labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+      datasets: [{
+        label: '碳排放量 (kgCO2e)',
+        data: [1200, 1100, 1050, 980, 950, 900],
+        borderColor: '#fd3995',
+        backgroundColor: 'rgba(253,57,149,0.1)',
+        fill: true,
+        tension: 0.4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      title: {
+        display: true,
+        text: '碳排放趨勢'
+      },
+      scales: {
+        yAxes: [{
+          ticks: {
+            beginAtZero: false
+          }
+        }]
+      }
+    }
+  });
+
+  // ===== 即時異常通知彈窗邏輯 =====
+  // 使用 sessionStorage，這樣每次重新登入都會重置
+  var hasAlert = sessionStorage.getItem('manager_overview_alert') !== 'hidden';
+  
+  // 每次頁面加載時顯示通知
+  if (!sessionStorage.getItem('manager_overview_alert')) {
+    $('#alert-toast').fadeIn();
+  }
+
+  // 點擊彈窗跳轉到即時異常監控，並隱藏彈窗
+  $('#alert-toast').on('click', function(e) {
+    if (!$(e.target).hasClass('close')) {
+      sessionStorage.setItem('manager_overview_alert', 'hidden');
+      window.location.href = 'manager_monitor.html';
+    }
+  });
+
+  // 點擊關閉按鈕只隱藏彈窗
+  $('#alert-toast .close').on('click', function(e) {
+    e.stopPropagation();
+    $('#alert-toast').fadeOut();
+    sessionStorage.setItem('manager_overview_alert', 'hidden');
+  });
+
+  // 初始化面板工具
+  $('.panel').each(function() {
+    var $panel = $(this);
+    
+    // 全螢幕功能
+    $panel.find('[data-action="panel-fullscreen"]').on('click', function() {
+      $panel.toggleClass('panel-fullscreen');
+      $(this).find('i').toggleClass('fa-expand fa-compress');
+    });
+  });
+});
+</script> 
+{{/inline}}
+
+{{/layouts/main}} 

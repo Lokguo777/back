@@ -1,0 +1,833 @@
+{{#> 
+    layouts/main 
+    title="能源消耗輸入" 
+    pagename="staff_energy"
+    heading="能源消耗輸入"
+    category_1="員工專區"
+    pagedescription="記錄每日電力和交通燃料使用量"
+}}
+
+{{#*inline "head-block"}}
+<link rel="stylesheet" media="screen, print" href="css/statistics/chartjs/chartjs.css">
+<link rel="stylesheet" media="screen, print" href="css/notifications/sweetalert2/sweetalert2.bundle.css">
+<style>
+  /* 全體基礎 */
+  .panel {
+    border-radius: .75rem;
+    box-shadow: 0 12px 30px -8px rgba(0,0,0,0.08);
+    border: none;
+    margin-bottom: 1.5rem;
+  }
+  .panel .panel-content {
+    padding: 1rem 1.25rem;
+  }
+  h2.section-title {
+    margin-top: 0;
+    font-weight: 600;
+    letter-spacing: .5px;
+  }
+  .form-group { margin-bottom: 0.75rem; }
+  .fuel-tabs .nav-pills .nav-link {
+    border-radius: 999px;
+    padding: .4rem .9rem;
+    font-size: .85rem;
+    font-weight: 600;
+    margin-right: .5rem;
+  }
+  .fuel-category-grid {
+    display: grid;
+    gap: 1rem;
+  }
+  @media (min-width: 992px) {
+    .fuel-category-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  .card.fuel-card {
+    border: 1px solid #e3e8f1;
+    border-radius: .6rem;
+    padding: .75rem;
+    background: #ffffff;
+  }
+  .unit-label {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: .75rem;
+    color: #6c757d;
+    pointer-events: none;
+  }
+  /* 趨勢與摘要容器 */
+  #trend-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  #chart-card, #summary-card {
+    flex: 1 1 400px;
+    min-width: 280px;
+  }
+  #trend-summary-wrapper {
+    background: #f5f8ff;
+    padding: .75rem 1rem;
+    border-radius: .5rem;
+    margin-top: 0.5rem;
+    border: 1px solid #dfe4ee;
+  }
+  #trend-summary-table th {
+    background: #ebf0f9;
+    font-weight: 600;
+  }
+  .btn-range-toggle .btn {
+    min-width: 80px;
+  }
+  .btn-range-toggle .btn.active {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: white;
+  }
+  .small-note {
+    background: #eef9fe;
+    padding: 8px 12px;
+    border-left: 5px solid #00bfa5;
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+    /* 手機一欄、平板以上兩欄 */
+  .fuel-input-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  @media (min-width: 576px) {
+    .fuel-input-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>
+{{/inline}}
+
+{{#*inline "content-block"}}
+<div class="container">
+  <!-- 表單區 -->
+  <div class="panel">
+    <div class="panel-content">
+      <h2 class="section-title">能源消耗填報</h2>
+      <form id="energy-form" novalidate>
+        <!-- 各類燃料 tabs -->
+        <div class="mt-3 fuel-tabs">
+          <ul class="nav nav-pills mb-3" role="tablist">
+            <li class="nav-item">
+              <a class="nav-link active" id="tab-solid-tab" data-toggle="pill" href="#tab-solid" role="tab" aria-controls="tab-solid" aria-selected="true">固態燃料</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="tab-liquid-tab" data-toggle="pill" href="#tab-liquid" role="tab" aria-controls="tab-liquid" aria-selected="false">液態燃料</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="tab-gas-tab" data-toggle="pill" href="#tab-gas" role="tab" aria-controls="tab-gas" aria-selected="false">氣態燃料</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="tab-mobile-tab" data-toggle="pill" href="#tab-mobile" role="tab" aria-controls="tab-mobile" aria-selected="false">移動源</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="tab-electricity-tab" data-toggle="pill" href="#tab-electricity" role="tab" aria-controls="tab-electricity" aria-selected="false">電力</a>
+            </li>
+          </ul>
+          <div class="tab-content">
+            <!-- 固態燃料 -->
+            <div class="tab-pane fade show active" id="tab-solid" role="tabpanel" aria-labelledby="tab-solid-tab">
+              <div class="card fuel-card">
+                <div class="fuel-category-grid">
+                  <!-- 自產煤 -->
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-4 col-form-label" for="solid_zichan_mei">自產煤</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="solid_zichan_mei" data-category="solid" min="0" step="0.01">
+                      <span class="unit-label">公噸/年</span>
+                    </div>
+                  </div>
+                  <!-- 無煙煤 -->
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-4 col-form-label" for="solid_wuyan_mei">無煙煤</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="solid_wuyan_mei" data-category="solid" min="0" step="0.01">
+                      <span class="unit-label">公噸/年</span>
+                    </div>
+                  </div>
+                  <!-- 焦炭 -->
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-4 col-form-label" for="solid_jiaotan">焦炭</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="solid_jiaotan" data-category="solid" min="0" step="0.01">
+                      <span class="unit-label">公噸/年</span>
+                    </div>
+                  </div>
+                  <!-- 煙煤 -->
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-4 col-form-label" for="solid_yanmei">煙煤</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="solid_yanmei" data-category="solid" min="0" step="0.01">
+                      <span class="unit-label">公噸/年</span>
+                    </div>
+                  </div>
+                  <!-- 亞煙煤(發電) -->
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-4 col-form-label" for="solid_yanmei_power">亞煙煤(發電)</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="solid_yanmei_power" data-category="solid" min="0" step="0.01">
+                      <span class="unit-label">公噸/年</span>
+                    </div>
+                  </div>
+                  <!-- 亞煙煤(其他) -->
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-4 col-form-label" for="solid_yanmei_other">亞煙煤(其他)</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="solid_yanmei_other" data-category="solid" min="0" step="0.01">
+                      <span class="unit-label">公噸/年</span>
+                    </div>
+                  </div>
+                  <!-- 褐煤 -->
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-4 col-form-label" for="solid_humei">褐煤</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="solid_humei" data-category="solid" min="0" step="0.01">
+                      <span class="unit-label">公噸/年</span>
+                    </div>
+                  </div>
+                  <!-- 原料煤 -->
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-4 col-form-label" for="solid_yuanliaomei">原料煤</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="solid_yuanliaomei" data-category="solid" min="0" step="0.01">
+                      <span class="unit-label">公噸/年</span>
+                    </div>
+                  </div>
+                  <!-- 油頁岩 -->
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-4 col-form-label" for="solid_youyeshan">油頁岩</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="solid_youyeshan" data-category="solid" min="0" step="0.01">
+                      <span class="unit-label">公噸/年</span>
+                    </div>
+                  </div>
+                  <!-- 泥煤 -->
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-4 col-form-label" for="solid_nimei">泥煤</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="solid_nimei" data-category="solid" min="0" step="0.01">
+                      <span class="unit-label">公噸/年</span>
+                    </div>
+                  </div>
+                  <!-- 煤球 -->
+                  <div class="form-group row align-items-center mb-4">
+                    <label class="col-sm-4 col-form-label" for="solid_meiqiu">煤球</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="solid_meiqiu" data-category="solid" min="0" step="0.01">
+                      <span class="unit-label">公噸/年</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 液態燃料 -->
+            <div class="tab-pane fade" id="tab-liquid" role="tabpanel" aria-labelledby="tab-liquid-tab">
+              <div class="card fuel-card">
+                <div class="fuel-category-grid">
+                  <!-- 蒸餘油 -->
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-4 col-form-label" for="liquid_zhengyu_you">蒸餘油 (燃料油)</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="liquid_zhengyu_you" data-category="liquid" min="0" step="0.01">
+                      <span class="unit-label">公秤/年</span>
+                    </div>
+                  </div>
+                  <!-- 液化石油氣 -->
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-4 col-form-label" for="liquid_lihua_shiyouqi">液化石油氣</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="liquid_lihua_shiyouqi" data-category="liquid" min="0" step="0.01">
+                      <span class="unit-label">公秤/年</span>
+                    </div>
+                  </div>
+                  <!-- 柴油 -->
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-4 col-form-label" for="liquid_chai_you">柴油</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="liquid_chai_you" data-category="liquid" min="0" step="0.01">
+                      <span class="unit-label">公秤/年</span>
+                    </div>
+                  </div>
+                  <!-- 其他油品 -->
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-4 col-form-label" for="liquid_qita_youpin">其他油品</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="liquid_qita_youpin" data-category="liquid" min="0" step="0.01">
+                      <span class="unit-label">公秤/年</span>
+                    </div>
+                  </div>
+                  <!-- 車用汽油 -->
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-4 col-form-label" for="liquid_cheyong_qiyou">車用汽油</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="liquid_cheyong_qiyou" data-category="liquid" min="0" step="0.01">
+                      <span class="unit-label">公秤/年</span>
+                    </div>
+                  </div>
+                  <!-- 石油焦 -->
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-4 col-form-label" for="liquid_shiyoujiao">石油焦</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="liquid_shiyoujiao" data-category="liquid" min="0" step="0.01">
+                      <span class="unit-label">公噸/年</span>
+                    </div>
+                  </div>
+                  <!-- 原油 -->
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-4 col-form-label" for="liquid_yuanyou">原油</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="liquid_yuanyou" data-category="liquid" min="0" step="0.01">
+                      <span class="unit-label">公秤/年</span>
+                    </div>
+                  </div>
+                  <!-- 奧里油 -->
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-4 col-form-label" for="liquid_aoli_you">奧里油</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="liquid_aoli_you" data-category="liquid" min="0" step="0.01">
+                      <span class="unit-label">公噸/年</span>
+                    </div>
+                  </div>
+                  <!-- 天然氣凝結油 -->
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-4 col-form-label" for="liquid_tianranqi_ningjie_you">天然氣凝結油</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="liquid_tianranqi_ningjie_you" data-category="liquid" min="0" step="0.01">
+                      <span class="unit-label">千立方公尺/年</span>
+                    </div>
+                  </div>
+                  <!-- 煤油 -->
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-4 col-form-label" for="liquid_meiyou">煤油</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="liquid_meiyou" data-category="liquid" min="0" step="0.01">
+                      <span class="unit-label">公秤/年</span>
+                    </div>
+                  </div>
+                  <!-- 頁岩油 -->
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-4 col-form-label" for="liquid_yeshai_you">頁岩油</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="liquid_yeshai_you" data-category="liquid" min="0" step="0.01">
+                      <span class="unit-label">公噸/年</span>
+                    </div>
+                  </div>
+                  <!-- 石油腦 -->
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-4 col-form-label" for="liquid_shiyouna">石油腦</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="liquid_shiyouna" data-category="liquid" min="0" step="0.01">
+                      <span class="unit-label">公秤/年</span>
+                    </div>
+                  </div>
+                  <!-- 柏油 -->
+                  <div class="form-group row align-items-center mb-4">
+                    <label class="col-sm-4 col-form-label" for="liquid_bai_you">柏油</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="liquid_bai_you" data-category="liquid" min="0" step="0.01">
+                      <span class="unit-label">公秤/年</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 氣態燃料 -->
+            <div class="tab-pane fade" id="tab-gas" role="tabpanel" aria-labelledby="tab-gas-tab">
+              <div class="fuel-category-grid">
+                <div class="card fuel-card">
+                  <!-- 天然氣 -->
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-4 col-form-label" for="gas_tianranqi">天然氣</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="gas_tianranqi" data-category="gas" min="0" step="0.01">
+                      <span class="unit-label">千立方公尺/年</span>
+                    </div>
+                  </div>
+                  <!-- 高爐氣 -->
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-4 col-form-label" for="gas_gaoluqi">高爐氣</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="gas_gaoluqi" data-category="gas" min="0" step="0.01">
+                      <span class="unit-label">千立方公尺/年</span>
+                    </div>
+                  </div>
+                  <!-- 焦爐氣 -->
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-4 col-form-label" for="gas_jiaoluqi">焦爐氣</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="gas_jiaoluqi" data-category="gas" min="0" step="0.01">
+                      <span class="unit-label">千立方公尺/年</span>
+                    </div>
+                  </div>
+                  <!-- 煉油氣 -->
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-4 col-form-label" for="gas_lianyouqi">煉油氣</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="gas_lianyouqi" data-category="gas" min="0" step="0.01">
+                      <span class="unit-label">千立方公尺/年</span>
+                    </div>
+                  </div>
+                  <!-- 乙烷 -->
+                  <div class="form-group row align-items-center mb-4">
+                    <label class="col-sm-4 col-form-label" for="gas_yiwan">乙烷</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="gas_yiwan" data-category="gas" min="0" step="0.01">
+                      <span class="unit-label">公秤/年</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 移動源 -->
+            <div class="tab-pane fade" id="tab-mobile" role="tabpanel" aria-labelledby="tab-mobile-tab">
+              <div class="fuel-category-grid">
+                <div class="card fuel-card">
+                  <!-- LNG -->
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-4 col-form-label" for="mobile_LNG">液化天然氣 (LNG)</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="mobile_LNG" data-category="mobile" min="0" step="0.01">
+                      <span class="unit-label">千立方公尺/年</span>
+                    </div>
+                  </div>
+                  <!-- LPG -->
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-4 col-form-label" for="mobile_LPG">液化石油氣 (LPG)</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="mobile_LPG" data-category="mobile" min="0" step="0.01">
+                      <span class="unit-label">公秤/年</span>
+                    </div>
+                  </div>
+                  <!-- 柴油 -->
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-4 col-form-label" for="mobile_diesel">柴油</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="mobile_diesel" data-category="mobile" min="0" step="0.01">
+                      <span class="unit-label">公秤/年</span>
+                    </div>
+                  </div>
+                  <!-- 車用汽油 -->
+                  <div class="form-group row align-items-center mb-0">
+                    <label class="col-sm-4 col-form-label" for="mobile_gasoline">車用汽油</label>
+                    <div class="col-sm-8 position-relative">
+                      <input type="number" class="form-control fuel-input" id="mobile_gasoline" data-category="mobile" min="0" step="0.01">
+                      <span class="unit-label">公秤/年</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 電力 -->
+            <div class="tab-pane fade" id="tab-electricity" role="tabpanel" aria-labelledby="tab-electricity-tab">
+              <div class="fuel-category-grid">
+                <div class="card fuel-card">
+                  <div class="form-group row align-items-center mb-2">
+                    <label class="col-sm-2 col-form-label" for="electricity_calculation">電力</label>
+                    <div class="col-sm-10 position-relative">
+                      <input type="number" class="form-control fuel-input" id="electricity_calculation" data-category="electricity" min="0" step="0.1">
+                      <span class="unit-label">kWh</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="mt-3">
+          <button type="submit" class="btn btn-primary">提交</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 趨勢 / 碳排圖 + 摘要 -->
+  <div class="panel">
+    <div class="panel-content">
+      <div class="d-flex justify-content-between align-items-start flex-wrap mb-2">
+        <div>
+          <h2 class="section-title">碳排放趨勢</h2>
+          <div class="small text-muted">依據各能源消耗換算後，每日累計的碳排放量（kg CO₂e）。</div>
+        </div>
+        <div class="btn-group btn-range-toggle mt-2" role="group">
+          <button type="button" class="btn btn-outline-secondary active" data-range="week">本週</button>
+          <button type="button" class="btn btn-outline-secondary" data-range="month">本月</button>
+        </div>
+      </div>
+      <div id="trend-wrapper">
+        <div id="chart-card">
+          <div id="energyTrendChart" style="width:100%; height:340px;"></div>
+        </div>
+        <div id="summary-card">
+          <div id="trend-summary-wrapper">
+            <!-- JS 填充碳排摘要 -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{{/inline}}
+
+{{#*inline "scripts-block"}}
+<!-- 依賴：jQuery / Popper / Bootstrap 4 -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJ+YtX3bYh1Z4qX6FhA6QwO5j3ge6zR0X1pY=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H1TfZB1z2XbYF3Kqh0WEFvZxHZf2KZfp2ro" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.6.0/js/bootstrap.min.js" integrity="sha384-+YQ4mW+HWonVw1lGNwM8+r7AYKYLEG1d4Cim7FIULe7IY2hIh3qmfgfRAn43Y+7C" crossorigin="anonymous"></script>
+
+<!-- ApexCharts + SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script src="js/notifications/sweetalert2/sweetalert2.bundle.js"></script>
+
+<script>
+  // --------- in-memory state（不 persist） ---------
+  let demoRecords = [];
+  const submittedFlags = {};
+  const remindedFlags = {};
+  let carbonApexChart = null;
+
+  // placeholder emission factors（單位需對齊）
+  const EMISSION_FACTORS = {
+    electricity: 0.5,      // kgCO2e / kWh
+  };
+  const DETAILED_EMISSION_FACTORS = {
+    // 固態
+    solid_zichan_mei: 2.1,
+    solid_wuyan_mei: 2.3,
+    solid_jiaotan: 2.5,
+    solid_yanmei: 2.2,
+    solid_yanmei_power: 2.2,
+    solid_yanmei_other: 2.2,
+    solid_humei: 1.9,
+    solid_yuanliaomei: 2.0,
+    solid_youyeshan: 2.4,
+    solid_nimei: 1.8,
+    solid_meiqiu: 2.0,
+    // 液態
+    liquid_zhengyu_you: 3.0,
+    liquid_lihua_shiyouqi: 2.7,
+    liquid_chai_you: 2.8,
+    liquid_qita_youpin: 2.9,
+    liquid_cheyong_qiyou: 2.6,
+    liquid_shiyoujiao: 3.1,
+    liquid_yuanyou: 3.2,
+    liquid_aoli_you: 3.0,
+    liquid_tianranqi_ningjie_you: 1.5,
+    liquid_meiyou: 2.4,
+    liquid_yeshai_you: 2.9,
+    liquid_shiyouna: 3.3,
+    liquid_bai_you: 1.2,
+    // 氣態
+    gas_tianranqi: 1.1,
+    gas_gaoluqi: 0.9,
+    gas_jiaoluqi: 1.0,
+    gas_lianyouqi: 1.2,
+    gas_yiwan: 0.8,
+    // 移動源
+    mobile_LNG: 1.4,
+    mobile_LPG: 1.6,
+    mobile_diesel: 2.5,
+    mobile_gasoline: 2.3
+  };
+
+  // --------- helpers ---------
+  function getLocalISODate(d = new Date()) {
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  function getRecords() {
+    return demoRecords;
+  }
+
+  function saveRecord(record) {
+    const idx = demoRecords.findIndex(r => r.date === record.date);
+    if (idx !== -1) {
+      demoRecords[idx] = record;
+    } else {
+      demoRecords.push(record);
+    }
+    submittedFlags[record.date] = true;
+  }
+
+  function collectDetailedFuelInputs() {
+    const categories = { solid: {}, liquid: {}, gas: {}, mobile: {} };
+    if (typeof $ === 'undefined') return categories;
+    $('.fuel-input').each(function () {
+      const category = $(this).data('category');
+      let val = parseFloat($(this).val());
+      if (isNaN(val) || val < 0) val = 0;
+      if (categories[category] !== undefined) {
+        categories[category][this.id] = val;
+      }
+    });
+    return categories;
+  }
+
+  function computeCarbonFromDetailed(detailedFuel) {
+    const result = { solid: 0, liquid: 0, gas: 0, mobile: 0 };
+    if (!detailedFuel) return result;
+    Object.entries(detailedFuel).forEach(([category, obj]) => {
+      Object.entries(obj || {}).forEach(([id, amount]) => {
+        const amt = parseFloat(amount) || 0;
+        const factor = DETAILED_EMISSION_FACTORS[id] || 0;
+        result[category] += amt * factor;
+      });
+    });
+    return result;
+  }
+
+  function computeCarbonFromRecord(r) {
+    const electricityCarbon = (parseFloat(r.electricity) || 0) * EMISSION_FACTORS.electricity;
+    const detailed = computeCarbonFromDetailed(r.detailedFuel);
+    return {
+      electricity: electricityCarbon,
+      solid: detailed.solid,
+      liquid: detailed.liquid,
+      gas: detailed.gas,
+      mobile: detailed.mobile
+    };
+  }
+
+  function fetchCarbonEmissionHistory(range = 'week') {
+    const now = new Date();
+    const days = range === 'month' ? 30 : 7;
+    const base = {};
+
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(now.getDate() - i);
+      const iso = getLocalISODate(d);
+      const label = `${d.getMonth() + 1}/${d.getDate()}`;
+      base[iso] = {
+        dateLabel: label,
+        dateStr: iso,
+        carbon: {
+          electricity: 0,
+          solid: 0,
+          liquid: 0,
+          gas: 0,
+          mobile: 0
+        }
+      };
+    }
+
+    const records = getRecords();
+    records.forEach(r => {
+      const iso = r.date;
+      if (!base[iso]) return;
+      const carb = computeCarbonFromRecord(r);
+      base[iso].carbon.electricity += carb.electricity;
+      base[iso].carbon.solid += carb.solid;
+      base[iso].carbon.liquid += carb.liquid;
+      base[iso].carbon.gas += carb.gas;
+      base[iso].carbon.mobile += carb.mobile;
+    });
+
+    return Object.values(base);
+  }
+
+  // --------- render ---------
+  function ensureTrendSummaryContainer() {
+    const $wrapper = $('#trend-summary-wrapper');
+    if ($wrapper.find('#trend-summary-table').length === 0) {
+      $wrapper.html(`
+        <h6>碳排放摘要（總量 / 日均）</h6>
+        <table class="table table-sm" id="trend-summary-table">
+          <thead>
+            <tr>
+              <th>能源類型</th><th>總碳排 (kgCO₂e)</th><th>日均</th><th>單位</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <div class="small text-muted">※ 所有數值已用換算係數轉成碳排放量。</div>
+      `);
+    }
+    return $('#trend-summary-table');
+  }
+
+  function renderCarbonSummary(data) {
+    const days = data.length;
+    const sum = {
+      electricity: 0,
+      solid: 0,
+      liquid: 0,
+      gas: 0,
+      mobile: 0
+    };
+    data.forEach(d => {
+      sum.electricity += d.carbon.electricity;
+      sum.solid += d.carbon.solid;
+      sum.liquid += d.carbon.liquid;
+      sum.gas += d.carbon.gas;
+      sum.mobile += d.carbon.mobile;
+    });
+
+    const $table = ensureTrendSummaryContainer();
+    const $tbody = $table.find('tbody').empty();
+
+    function row(name, total) {
+      const avg = days > 0 ? total / days : 0;
+      return `
+        <tr>
+          <td>${name}</td>
+          <td>${total.toFixed(2)}</td>
+          <td>${avg.toFixed(2)}</td>
+          <td>kg CO₂e</td>
+        </tr>`;
+    }
+
+    $tbody.append(row('電力', sum.electricity));
+    $tbody.append(row('固態燃料', sum.solid));
+    $tbody.append(row('液態燃料', sum.liquid));
+    $tbody.append(row('氣態燃料', sum.gas));
+    $tbody.append(row('移動源', sum.mobile));
+  }
+
+  function renderCarbonEmissionChart(range = 'week') {
+    const history    = fetchCarbonEmissionHistory(range);
+    const categories = history.map(d => d.dateLabel);
+    // 真正要畫的五個系列
+    const actualSeries = [
+      { name: '電力',     data: history.map(d => +d.carbon.electricity.toFixed(2)) },
+      { name: '固態燃料', data: history.map(d => +d.carbon.solid.toFixed(2)) },
+      { name: '液態燃料', data: history.map(d => +d.carbon.liquid.toFixed(2)) },
+      { name: '氣態燃料', data: history.map(d => +d.carbon.gas.toFixed(2)) },
+      { name: '移動源',   data: history.map(d => +d.carbon.mobile.toFixed(2)) }
+    ];
+    const allNames = actualSeries.map(s => s.name);
+
+    // 加上一個「全部」的 dummy series（不畫線，只為了 legend）
+    const series = [
+      ...actualSeries,
+      { 
+        name: '全部', 
+        data: Array(categories.length).fill(null) // fill null 就不會畫任何點
+      }
+    ];
+
+    const options = {
+      chart: {
+        id: 'carbonChart',
+        type: 'line',
+        stacked: false,
+        toolbar: { show: false },
+        events: {
+          legendClick: function(chartCtx, seriesIndex) {
+            const clickedName = series[seriesIndex].name;
+            if (clickedName === '全部') {
+              // 全部顯示
+              actualSeries.forEach(s => chartCtx.showSeries(s.name));
+            } else {
+              // 單選切換：如果不是「全部」，就只顯示該條線
+              allNames.forEach(name => {
+                if (name === clickedName) chartCtx.showSeries(name);
+                else                       chartCtx.hideSeries(name);
+              });
+            }
+          }
+        }
+      },
+      series: series,
+      stroke: { curve: 'smooth', width: 2 },
+      xaxis: { categories, tickPlacement: 'on' },
+      yaxis: { title: { text: '碳排放 (kg CO₂e)' }, min: 0 },
+      legend: {
+        position: 'bottom',
+        horizontalAlign: 'center',
+        // 關閉預設點 legend 就隱藏 series 的行為
+        onItemClick: { toggleDataSeries: false }
+      },
+      tooltip: { shared: true, intersect: false, y: { formatter: v => `${v} kg CO₂e` } },
+      colors: ['#2dd9c5','#ff5fa2','#3d7eff','#f2c94c','#6f42c1','#888888'] // 最後一個顏色給「全部」
+    };
+
+    if (carbonApexChart) {
+      carbonApexChart.updateOptions({ series }, false, true);
+    } else {
+      carbonApexChart = new ApexCharts(
+        document.querySelector('#energyTrendChart'),
+        options
+      );
+      carbonApexChart.render();
+    }
+
+    renderCarbonSummary(history);
+  }
+
+  // --------- reminder (in-memory only) ---------
+  function remindIfNotSubmitted() {
+    const now = new Date();
+    const hour = now.getHours();
+    const today = getLocalISODate();
+    const hasSubmitted = !!submittedFlags[today];
+    if (hour >= 9 && hour < 11 && !hasSubmitted && !remindedFlags[today]) {
+      Swal.fire({
+        icon: 'info',
+        title: '提醒',
+        text: '請填寫今日能源消耗資料以更新碳排放趨勢'
+      });
+      remindedFlags[today] = true;
+    }
+  }
+
+  // --------- init & bindings ---------
+  $(document).ready(function () {
+    // 初始畫本週
+    renderCarbonEmissionChart('week');
+
+    // range 切換
+    $('.btn-range-toggle .btn').on('click', function () {
+      $('.btn-range-toggle .btn').removeClass('active');
+      $(this).addClass('active');
+      const range = $(this).data('range');
+      renderCarbonEmissionChart(range);
+    });
+
+    // 提交
+    $('#energy-form').on('submit', function (e) {
+      e.preventDefault();
+      const electricity = parseFloat($('#electricity_calculation').val()) || 0;
+      if (isNaN(electricity)) {
+        Swal.fire('錯誤', '請正確輸入電力與交通燃料數值', 'error');
+        return;
+      }
+      const detailedFuel = collectDetailedFuelInputs();
+      const today = getLocalISODate();
+      const record = {
+        date: today,
+        electricity,
+        detailedFuel
+      };
+      saveRecord(record);
+      Swal.fire('已提交', '能源消耗資料已儲存並更新碳排放圖表', 'success');
+      const activeRange = $('.btn-range-toggle .btn.active').data('range') || 'week';
+      renderCarbonEmissionChart(activeRange);
+    });
+
+    // reminder 每分鐘檢查
+    setInterval(remindIfNotSubmitted, 60 * 1000);
+    remindIfNotSubmitted();
+  });
+</script>
+{{/inline}}
+
+{{/layouts/main}}

@@ -1,0 +1,253 @@
+{{#> 
+    layouts/main 
+    title="風險預警中心" 
+    pagename="boss_risk_center"
+    heading="風險預警中心"
+    category_1="老闆專區"
+    pagedescription="主動監控並提醒與氣候、碳市、專案執行、合規等多項風險，支援預警與分析"
+}}
+
+{{!-- ▸▸▸ 1. HEAD 區：引用套件 + 客製樣式 --}}
+{{#*inline "head-block"}}
+<link rel="stylesheet" media="screen, print" href="css/statistics/chartjs/chartjs.css">
+<link rel="stylesheet" media="screen, print" href="css/vendors.bundle.css"/>
+<link rel="stylesheet" media="screen, print" href="css/app.bundle.css"/>
+<style>
+  /* 小卡樣式 ---------------------------------------------------------- */
+  .risk-card{border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.05);padding:1.2rem;margin-bottom:1rem;cursor:pointer;transition:box-shadow .2s}
+  .risk-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.12)}
+  .risk-title{font-weight:700;font-size:1.1rem}
+  .risk-badge{font-size:.95rem;margin-right:.5rem}
+  .risk-level-high{background:#dc3545;color:#fff}
+  .risk-level-medium{background:#ffc241;color:#333}
+  .risk-level-low{background:#4caf50;color:#fff}
+  .risk-status-open{background:#fd3995;color:#fff}
+  .risk-status-handling{background:#2196f3;color:#fff}
+  .risk-status-closed{background:#1dc9b7;color:#fff}
+  /* Modal 內表格 & 圖標 */
+  .table-sm th{font-weight:600}
+  .risk-icon{width:34px;height:34px}
+</style>
+{{/inline}}
+
+{{!-- ▸▸▸ 2. 內容區：篩選列 + 小卡 + Modal --}}
+{{#*inline "content-block"}}
+<!-- 篩選下拉選 + 報告按鈕 ----------------------------------------- -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <select class="form-control d-inline-block w-auto" id="risk-category-switch">
+      <option value="all">全部風險</option>
+      <option value="climate">氣候</option>
+      <option value="carbon">碳市場</option>
+      <option value="project">專案執行</option>
+      <option value="compliance">合規</option>
+    </select>
+    <select class="form-control d-inline-block w-auto ml-2" id="risk-mode-switch">
+      <option value="card">小卡模式</option>
+      <option value="list">列表模式</option>
+    </select>
+    <button class="btn btn-outline-primary btn-sm ml-2">設定警示閾值</button>
+  </div>
+  <div>
+    <button class="btn btn-outline-success btn-sm">生成月度風險報告</button>
+  </div>
+</div>
+
+<!-- 小卡清單 ------------------------------------------------------- -->
+<div class="row" id="risk-card-list">
+
+  <!-- 氣候異常預警 -->
+  <div class="col-md-4">
+    <div class="risk-card"
+         data-toggle="modal" data-target="#riskDetailModal"
+         data-equip-name="切割機"
+         data-equip-code="—"
+         data-level="一般風險"
+         data-owner="王經理"
+         data-site="台中廠區"
+         data-time="2024-06-10 08:00"
+         data-trigger="觸電、機械傷害、灼燙、物體打擊"
+         data-hazard='[
+           "設備設計安裝存在缺陷，接地接零失效或漏保失效",
+           "機械設備可能造成夾纏、吸入或戳刺等危險",
+           "切割過程產生灼熱熔渣，連續銅棒表面溫度極高，人體誤觸將受傷",
+           "設備安裝不合格或防護失效造成零件飛出"
+         ]'
+         data-measure='[
+           "作業人員必須培訓合格方可作業",
+           "必須依據操作規程操作，嚴格執行操作規程",
+           "作業時必須穿戴勞防用品",
+           "設備定期進行設備點檢，緊急停車開關可靠，防護裝置齊全",
+           "開展安全檢查和隱患排查，及時消除隱患",
+           "配置應急設備、器材，滅火器齊全有效",
+           "作業現場規範、整潔、有序，落實安全措施"
+         ]'>
+      <div class="risk-title">氣候異常預警</div>
+      <div class="mb-2">
+        <span class="badge risk-badge risk-level-high">高風險</span>
+        <span class="badge risk-badge risk-status-open">未處理</span>
+        <span class="badge badge-secondary">氣候</span>
+      </div>
+      <div>負責人：王經理</div>
+    </div>
+  </div>
+
+  <!-- 碳市場價格劇烈波動 -->
+  <div class="col-md-4">
+    <div class="risk-card"
+         data-toggle="modal" data-target="#riskDetailModal"
+         data-equip-name="價格監控系統"
+         data-owner="李主任"
+         data-level="中風險"
+         data-site="台北總部"
+         data-trigger="碳信用價格大幅波動"
+         data-hazard='["市場流動性不足造成交易中斷", "高頻波動導致保證金不足風險"]'
+         data-measure='["加強市場監控預警", "設定動態保證金門檻"]'
+    >
+      <div class="risk-title">碳市場價格劇烈波動</div>
+      <div class="mb-2">
+        <span class="badge risk-badge risk-level-medium">中風險</span>
+        <span class="badge risk-badge risk-status-handling">處理中</span>
+        <span class="badge badge-secondary">碳市場</span>
+      </div>
+      <div>負責人：李主任</div>
+    </div>
+  </div>
+
+  <!-- 專案驗證逾期 -->
+  <div class="col-md-4">
+    <div class="risk-card"
+         data-toggle="modal" data-target="#riskDetailModal"
+         data-equip-name="驗證文檔"
+         data-owner="張會計"
+         data-level="高風險"
+         data-site="桃園園區"
+         data-trigger="驗證審核進度延遲"
+         data-hazard='["逾期產生合規罰款", "信用減損影響融資"]'
+         data-measure='["加派人手處理審核文件", "即時溝通並申請展延"]'
+    >
+      <div class="risk-title">專案驗證逾期</div>
+      <div class="mb-2">
+        <span class="badge risk-badge risk-level-high">高風險</span>
+        <span class="badge risk-badge risk-status-open">未處理</span>
+        <span class="badge badge-secondary">合規</span>
+      </div>
+      <div>負責人：張會計</div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal：風險詳情 ------------------------------------------------- -->
+<div class="modal fade" id="riskDetailModal" tabindex="-1" role="dialog" aria-labelledby="riskDetailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="riskDetailModalLabel">風險詳情</h5>
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+      </div>
+
+      <!-- ⚠️ 這裡改成三欄排版 -->
+      <div class="modal-body">
+        <div class="row no-gutters">
+          <!-- 左：基本資訊 ------------------------------------------- -->
+          <div class="col-md-4 border-right pr-2">
+            <table class="table table-sm mb-2">
+              <tr><th class="w-50">危險源名稱</th><td id="risk-equip-name"></td></tr>
+              <tr><th>設備編號</th><td id="risk-equip-code"></td></tr>
+              <tr><th>危險源等級</th><td id="risk-level"></td></tr>
+              <tr><th>管理責任人</th><td id="risk-owner"></td></tr>
+              <tr><th>地點</th><td id="risk-site"></td></tr>
+              <tr><th>發生時間</th><td id="risk-time"></td></tr>
+            </table>
+
+            <div class="alert alert-danger p-2">
+              <strong>重要提示</strong><br>
+              嚴禁未按勞保穿戴要求進入作業區；<br>
+              必須依標準作業程序作業；<br>
+              檢查確認設備完好，作業現場無隱患。
+            </div>
+            <p class="small mb-0">緊急聯絡電話：022-XXXXXXX<br>警察 119｜急救 120</p>
+          </div>
+
+          <!-- 中：誘發事故 & 危害 ------------------------------------ -->
+          <div class="col-md-4 border-right px-2">
+            <h6 class="bg-danger text-white text-center py-1 mb-2">誘發事故</h6>
+            <p id="risk-trigger" class="mb-3"></p>
+
+            <h6 class="bg-danger text-white text-center py-1 mb-2">危險危害因素</h6>
+            <ol id="risk-hazard" class="pl-3 mb-0 small"></ol>
+          </div>
+
+          <!-- 右：安全防範措施 -------------------------------------- -->
+          <div class="col-md-4 pl-2">
+            <h6 class="bg-primary text-white text-center py-1 mb-2">安全防範措施、要求</h6>
+            <ol id="risk-measure" class="pl-3 small"></ol>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
+        <button type="button" class="btn btn-primary">更新狀態</button>
+      </div>
+    </div>
+  </div>
+</div>
+{{/inline}}
+
+{{!-- ▸▸▸ 3. SCRIPT 區：填充 Modal + 營利走勢圖 --}}
+{{#*inline "scripts-block"}}
+<script src="js/vendors.bundle.js"></script>
+<script src="js/app.bundle.js"></script>
+<script src="js/statistics/chartjs/chartjs.bundle.js"></script>
+<script>
+$(function () {
+
+  /* === 1. Modal 打開時，把卡片上的 data-* 塞進去 ================= */
+  $('#riskDetailModal').on('show.bs.modal', function (evt) {
+    const $card  = $(evt.relatedTarget);   // 觸發的那張小卡
+    const $modal = $(this);
+
+    // 文字欄位
+    $modal.find('#risk-equip-name').text($card.data('equip-name') || '');
+    $modal.find('#risk-equip-code').text($card.data('equip-code') || '');
+    $modal.find('#risk-level')     .text($card.data('level')      || '');
+    $modal.find('#risk-owner')     .text($card.data('owner')      || '');
+    $modal.find('#risk-site')      .text($card.data('site')       || '');
+    $modal.find('#risk-time')      .text($card.data('time')       || '');
+    $modal.find('#risk-trigger')   .text($card.data('trigger')    || '');
+
+    // 陣列：危害因素
+    const hazards = $card.data('hazard') || [];
+    const $hazardOl = $modal.find('#risk-hazard').empty();
+    (Array.isArray(hazards) ? hazards : JSON.parse(hazards))
+      .forEach(t => $hazardOl.append(`<li>${t}</li>`));
+
+    // 陣列：安全措施
+    const measures = $card.data('measure') || [];
+    const $measureOl = $modal.find('#risk-measure').empty();
+    (Array.isArray(measures) ? measures : JSON.parse(measures))
+      .forEach(t => $measureOl.append(`<li>${t}</li>`));
+
+    /* === 2. 建立或更新營利走勢圖 ================================ */
+    const ctx  = document.getElementById('riskProfitChart').getContext('2d');
+    if (window.profitChart) window.profitChart.destroy();  // 若已存在先銷毀
+    window.profitChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['修正前', '修正後'],
+        datasets: [{
+          label:'預測營利', data:[-200, 100],
+          borderColor:'#fd3995', backgroundColor:'rgba(253,57,149,.1)',
+          fill:true, tension:.4
+        }]
+      },
+      options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}}
+    });
+  });
+
+});
+</script>
+{{/inline}}
+
+{{/layouts/main}}
